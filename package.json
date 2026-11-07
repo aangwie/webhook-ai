@@ -1,0 +1,39 @@
+{
+  "name": "webhook-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Webhook AI — SaaS gratis dashboard WhatsApp + webhook + balasan AI (Node.js, Baileys, MySQL, Tailwind CSS).",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./public/css/app.css --minify",
+    "start": "npm run build:css && node src/server.js",
+    "dev": "npm run build:css && node --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "webhook",
+    "whatsapp",
+    "baileys",
+    "ai",
+    "mysql",
+    "saas",
+    "tailwind"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "baileys": "^7.0.0-rc14",
+    "express": "^5.3.0",
+    "mysql2": "^3.24.6",
+    "pino": "^10.4.0",
+    "qrcode": "^1.5.4",
+    "sweetalert2": "^11.26.25"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.5",
+    "tailwindcss": "^4.3.5"
+  }
+}

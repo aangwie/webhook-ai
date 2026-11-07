@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="id" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#020617" />
+    <meta name="description" content="Dashboard Webhook AI — WhatsApp, webhook, dan balasan AI." />
+    <title>Dashboard · Webhook AI</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/vendor/sweetalert2/sweetalert2.min.css" />
+  </head>
+  <body class="min-h-full bg-slate-950 text-slate-100 antialiased">
+    <div class="flex min-h-screen bg-mesh">
+      <!-- Mobile overlay -->
+      <div
+        id="sidebar-overlay"
+        class="fixed inset-0 z-40 hidden bg-slate-950/70 backdrop-blur-sm lg:hidden"
+      ></div>
+
+      <!-- Sidebar -->
+      <aside
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-y-auto overscroll-contain border-r border-white/5 bg-slate-950/95 p-5 backdrop-blur-xl transition-transform duration-300 ease-out"
+      >
+        <div class="flex items-center justify-between">
+          <a href="/dashboard" class="flex items-center gap-3">
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-400 shadow-lg shadow-emerald-500/25">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#020617" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true">
+                <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" />
+                <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" />
+                <path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8" />
+              </svg>
+            </span>
+            <div>
+              <p class="text-sm font-semibold tracking-tight text-white">Webhook AI</p>
+              <p class="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">Dashboard</p>
+            </div>
+          </a>
+          <button
+            id="sidebar-close"
+            type="button"
+            class="grid h-9 w-9 place-items-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-white"
+            aria-label="Tutup menu"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <nav class="mt-8 flex-1 space-y-1" aria-label="Navigasi utama">
+          <p class="mb-2 px-3.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">Menu</p>
+
+          <button type="button" class="nav-item" data-nav="overview" data-active="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+              <rect width="7" height="9" x="3" y="3" rx="1" />
+              <rect width="7" height="5" x="14" y="3" rx="1" />
+              <rect width="7" height="9" x="14" y="12" rx="1" />
+              <rect width="7" height="5" x="3" y="16" rx="1" />
+            </svg>
+            Ringkasan
+          </button>
+
+          <button type="button" class="nav-item" data-nav="whatsapp" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+              <rect width="14" height="20" x="5" y="2" rx="2" />
+              <path d="M12 18h.01" />
+            </svg>
+            WhatsApp
+            <span id="nav-wa-dot" class="ml-auto h-2 w-2 rounded-full bg-slate-600"></span>
+          </button>
+
+          <button type="button" class="nav-item" data-nav="webhooks" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+              <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" />
+              <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" />
+              <path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8" />
+            </svg>
+            Webhook
+          </button>
+
+          <button type="button" class="nav-item" data-nav="ai" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+              <path d="M12 8V4H8" />
+              <rect width="16" height="12" x="4" y="8" rx="2" />
+              <path d="M2 14h2M20 14h2M15 13v2M9 13v2" />
+            </svg>
+            AI Balasan
+            <span id="nav-ai-badge" class="ml-auto hidden rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">ON</span>
+          </button>
+
+          <button type="button" class="nav-item" data-nav="logs" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+            Aktivitas
+          </button>
+
+          <button type="button" class="nav-item" data-nav="users" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            User
+            <span id="nav-user-badge" class="ml-auto hidden rounded-full bg-cyan-400/15 px-2 py-0.5 text-[10px] font-semibold text-cyan-300">ADMIN</span>
+          </button>
+
+          <button type="button" class="nav-item" data-nav="settings" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Pengaturan
+          </button>
+
+          <button type="button" class="nav-item" data-nav="docs" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+              <path d="M12 7v14" />
+              <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+            </svg>
+            Dokumentasi
+          </button>
+        </nav>
+
+        <!-- WA mini status -->
+        <div class="mb-4 rounded-xl border border-white/10 bg-slate-900/60 p-3.5">
+          <div class="flex items-center gap-2">
+            <span id="side-wa-dot" class="h-2 w-2 rounded-full bg-slate-600"></span>
+            <p class="text-xs font-semibold text-slate-200">WhatsApp</p>
+            <span id="side-wa-label" class="ml-auto text-[11px] text-slate-500">Memuat…</span>
+          </div>
+          <p id="side-wa-phone" class="mt-1.5 truncate font-mono text-[11px] text-slate-500">—</p>
+        </div>
+
+        <!-- User -->
+        <div class="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/60 p-3">
+          <span id="user-avatar" class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-emerald-400/30 to-cyan-400/30 text-xs font-bold text-emerald-200">AI</span>
+          <div class="min-w-0 flex-1">
+            <p class="flex min-w-0 items-center gap-1.5">
+              <span id="user-name" class="truncate text-xs font-semibold text-slate-200">Memuat…</span>
+              <span id="user-role-badge" class="shrink-0 rounded bg-emerald-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300">user</span>
+            </p>
+            <p id="user-email" class="truncate text-[11px] text-slate-500">—</p>
+          </div>
+          <button
+            id="app-logout"
+            type="button"
+            class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-rose-300"
+            title="Keluar"
+            aria-label="Keluar dari akun"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="m16 17 5-5-5-5M21 12H9" />
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <div
+        id="main-content"
+        class="flex min-h-screen w-full min-w-0 flex-col transition-[padding-left] duration-300 ease-out lg:pl-72"
+      >
+        <header
+          class="sticky top-0 z-30 flex items-center gap-3 border-b border-white/5 bg-slate-950/75 px-4 py-3 backdrop-blur-xl sm:px-6"
+        >
+          <button
+            id="sidebar-open"
+            type="button"
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10"
+            aria-label="Buka menu"
+            aria-controls="sidebar"
+            aria-expanded="true"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+
+          <div class="min-w-0 flex-1">
+            <h1 id="page-title" class="truncate text-sm font-semibold text-white sm:text-base">Ringkasan</h1>
+            <p id="page-subtitle" class="truncate text-[11px] text-slate-500 sm:text-xs">
+              Pantau status dan aktivitas otomasi Anda.
+            </p>
+          </div>
+
+          <span id="top-status" class="chip border border-slate-700/60 bg-slate-800/60 text-slate-400">
+            <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+            Memuat
+          </span>
+
+          <span class="hidden h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-emerald-400/30 to-cyan-400/30 text-[11px] font-bold text-emerald-200 sm:grid" id="top-avatar">AI</span>
+        </header>
+
+        <main class="flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+          <div class="mx-auto w-full max-w-6xl">
+            <!-- ================= OVERVIEW ================= -->
+            <section data-page="overview" class="space-y-5">
+              <div class="card relative overflow-hidden p-5 sm:p-7">
+                <div class="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl"></div>
+                <div class="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">Selamat datang</p>
+                    <h2 class="mt-2 text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                      Halo, <span id="overview-name">there</span> 👋
+                    </h2>
+                    <p id="overview-hint" class="mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
+                      Hubungkan WhatsApp untuk mulai meneruskan pesan ke webhook dan membalas dengan AI.
+                    </p>
+                  </div>
+                  <button type="button" id="overview-cta" class="btn-primary shrink-0" data-goto="whatsapp">
+                    Hubungkan WhatsApp
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+                <div class="card p-4 sm:p-5">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:text-xs">WhatsApp</p>
+                    <span class="grid h-8 w-8 place-items-center rounded-lg bg-emerald-400/10 text-emerald-300">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><rect width="14" height="20" x="5" y="2" rx="2" /><path d="M12 18h.01" /></svg>
+                    </span>
+                  </div>
+                  <p id="stat-wa" class="mt-3 truncate text-lg font-semibold text-white sm:text-2xl">—</p>
+                  <p id="stat-wa-sub" class="mt-1 truncate text-[11px] text-slate-500">Memuat…</p>
+                </div>
+
+                <div class="card p-4 sm:p-5">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:text-xs">Webhook</p>
+                    <span class="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" /><path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" /><path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8" /></svg>
+                    </span>
+                  </div>
+                  <p id="stat-hooks" class="mt-3 text-lg font-semibold text-white sm:text-2xl">—</p>
+                  <p id="stat-hooks-sub" class="mt-1 truncate text-[11px] text-slate-500">Memuat…</p>
+                </div>
+
+                <div class="card p-4 sm:p-5">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:text-xs">Aktivitas</p>
+                    <span class="grid h-8 w-8 place-items-center rounded-lg bg-sky-400/10 text-sky-300">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+                    </span>
+                  </div>
+                  <p id="stat-logs" class="mt-3 text-lg font-semibold text-white sm:text-2xl">—</p>
+                  <p class="mt-1 truncate text-[11px] text-slate-500">Total entri tersimpan</p>
+                </div>
+
+                <div class="card p-4 sm:p-5">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:text-xs">AI Balasan</p>
+                    <span class="grid h-8 w-8 place-items-center rounded-lg bg-violet-400/10 text-violet-300">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2M20 14h2M15 13v2M9 13v2" /></svg>
+                    </span>
+                  </div>
+                  <p id="stat-ai" class="mt-3 text-lg font-semibold text-white sm:text-2xl">—</p>
+                  <p id="stat-ai-sub" class="mt-1 truncate text-[11px] text-slate-500">Memuat…</p>
+                </div>
+              </div>
+
+              <div class="grid gap-4 xl:grid-cols-3">
+                <div class="card p-5 xl:col-span-2">
+                  <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-white">Aktivitas terbaru</h3>
+                    <button type="button" class="text-xs font-medium text-emerald-300 transition hover:text-emerald-200" data-goto="logs">
+                      Lihat semua
+                    </button>
+                  </div>
+                  <div id="overview-logs" class="space-y-2">
+                    <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-sm text-slate-500">
+                      Memuat aktivitas…
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card p-5">
+                  <h3 class="text-sm font-semibold text-white">Mulai cepat</h3>
+                  <ol class="mt-4 space-y-4">
+                    <li class="flex gap-3">
+                      <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-400/10 text-[11px] font-bold text-emerald-300">1</span>
+                      <div>
+                        <p class="text-xs font-semibold text-slate-200">Hubungkan WhatsApp</p>
+                        <p class="mt-0.5 text-[11px] leading-relaxed text-slate-500">Scan QR dari menu WhatsApp.</p>
+                      </div>
+                    </li>
+                    <li class="flex gap-3">
+                      <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-cyan-400/10 text-[11px] font-bold text-cyan-300">2</span>
+                      <div>
+                        <p class="text-xs font-semibold text-slate-200">Tambah URL webhook</p>
+                        <p class="mt-0.5 text-[11px] leading-relaxed text-slate-500">Teruskan pesan ke aplikasi Anda.</p>
+                      </div>
+                    </li>
+                    <li class="flex gap-3">
+                      <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-violet-400/10 text-[11px] font-bold text-violet-300">3</span>
+                      <div>
+                        <p class="text-xs font-semibold text-slate-200">Aktifkan AI</p>
+                        <p class="mt-0.5 text-[11px] leading-relaxed text-slate-500">Isi API key dan biarkan AI membalas.</p>
+                      </div>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= WHATSAPP ================= -->
+            <section data-page="whatsapp" class="hidden space-y-5">
+              <div class="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+                <div class="card p-5 sm:p-6">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 class="text-base font-semibold text-white">Koneksi WhatsApp</h2>
+                      <p class="mt-1 text-xs text-slate-400">Tautkan nomor Anda dengan memindai QR code.</p>
+                    </div>
+                    <span id="wa-status-pill" class="chip border border-slate-700/60 bg-slate-800/60 text-slate-400">
+                      <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+                      Memuat
+                    </span>
+                  </div>
+
+                  <div class="mt-5 rounded-xl border border-white/10 bg-slate-950/50 p-4">
+                    <div class="flex items-center gap-3">
+                      <span id="wa-avatar" class="grid h-11 w-11 place-items-center rounded-full bg-emerald-400/10 text-emerald-300">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><rect width="14" height="20" x="5" y="2" rx="2" /><path d="M12 18h.01" /></svg>
+                      </span>
+                      <div class="min-w-0">
+                        <p id="wa-phone" class="truncate text-sm font-semibold text-white">Belum terhubung</p>
+                        <p id="wa-status-text" class="truncate text-xs text-slate-500">Status: disconnected</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <button type="button" id="wa-connect" class="btn-primary flex-1">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+                      Hubungkan / QR
+                    </button>
+                    <button type="button" id="wa-refresh" class="btn-ghost flex-1">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" /></svg>
+                      Cek status
+                    </button>
+                    <button type="button" id="wa-logout" class="btn-danger flex-1 sm:flex-none">
+                      Putuskan
+                    </button>
+                  </div>
+
+                  <div class="mt-6 rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-xs font-semibold text-slate-200">Cara menghubungkan</p>
+                    <ol class="mt-2 list-inside list-decimal space-y-1 text-[11px] leading-relaxed text-slate-500">
+                      <li>Buka WhatsApp di ponsel Anda.</li>
+                      <li>Masuk ke <span class="text-slate-300">Perangkat tertaut</span> → <span class="text-slate-300">Tautkan perangkat</span>.</li>
+                      <li>Arahkan kamera ke QR code, tunggu hingga status berubah <span class="text-emerald-300">Connected</span>.</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <div class="card flex flex-col p-5 sm:p-6">
+                  <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-white">Scan QR</h3>
+                    <span id="qr-badge" class="chip border border-white/10 bg-white/5 text-slate-400">Menunggu</span>
+                  </div>
+
+                  <div class="flex flex-1 items-center justify-center">
+                    <div class="relative grid aspect-square w-full max-w-[280px] place-items-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-3">
+                      <img id="wa-qr" alt="QR code WhatsApp" class="hidden w-full rounded-xl bg-white p-2" />
+                      <div id="wa-qr-placeholder" class="px-6 text-center">
+                        <span class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-white/5 text-slate-500">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7"><rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1" /></svg>
+                        </span>
+                        <p class="mt-4 text-sm font-medium text-slate-300">QR belum tersedia</p>
+                        <p class="mt-1 text-xs leading-relaxed text-slate-500">
+                          Tekan <span class="text-slate-300">Hubungkan / QR</span> lalu tunggu beberapa detik.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="mt-4 text-center text-[11px] leading-relaxed text-slate-500">
+                    QR berlaku sekitar 20 detik. Jika kedaluwarsa, tekan tombol cek status untuk memuat ulang.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= WEBHOOKS ================= -->
+            <section data-page="webhooks" class="hidden space-y-5">
+              <div class="card p-5 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 class="text-base font-semibold text-white">Tambah webhook</h2>
+                    <p class="mt-1 text-xs text-slate-400">Setiap pesan WhatsApp akan dikirim sebagai JSON ke URL Anda.</p>
+                  </div>
+                  <span class="chip border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">HMAC-SHA256</span>
+                </div>
+
+                <form id="hook-form" class="mt-5 grid gap-4 sm:grid-cols-[1fr_1.4fr_auto] sm:items-end" novalidate>
+                  <div>
+                    <label for="hook-name" class="field-label">Nama</label>
+                    <input id="hook-name" class="field" placeholder="ERP Produksi" required />
+                  </div>
+                  <div>
+                    <label for="hook-url" class="field-label">URL endpoint</label>
+                    <input id="hook-url" type="url" class="field" placeholder="https://domain.com/webhook" required />
+                  </div>
+                  <button type="submit" class="btn-primary sm:w-auto">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M12 5v14M5 12h14" /></svg>
+                    Tambah
+                  </button>
+                </form>
+              </div>
+
+              <div class="card p-5 sm:p-6">
+                <div class="mb-4 flex items-center justify-between">
+                  <h3 class="text-sm font-semibold text-white">
+                    Daftar webhook
+                    <span id="hook-count" class="ml-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-slate-400">0</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-500">Signature dikirim di header <span class="font-mono text-slate-400">X-Webhook-Signature</span></p>
+                </div>
+                <div id="hook-list" class="space-y-3">
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-sm text-slate-500">Memuat webhook…</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= AI ================= -->
+            <section data-page="ai" class="hidden space-y-5">
+              <div class="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+                <div class="card p-5 sm:p-6">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 class="text-base font-semibold text-white">Pengaturan AI</h2>
+                      <p class="mt-1 text-xs text-slate-400">
+                        Kompatibel dengan API OpenAI: OpenAI, OpenRouter, Groq, Ollama, dan lainnya.
+                      </p>
+                    </div>
+                    <label class="flex cursor-pointer items-center gap-2.5">
+                      <input id="ai-enabled" type="checkbox" class="peer sr-only" />
+                      <span class="relative h-6 w-11 shrink-0 rounded-full bg-slate-700 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:bg-emerald-400 peer-checked:after:translate-x-5"></span>
+                    </label>
+                  </div>
+
+                  <form id="ai-form" class="mt-5 space-y-4" novalidate>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label for="ai-base" class="field-label">Base URL</label>
+                        <input id="ai-base" class="field font-mono text-xs" placeholder="https://api.openai.com/v1" />
+                        <p class="mt-1.5 text-[11px] text-slate-500">
+                          Ollama Cloud: <span class="font-mono text-slate-400">https://ollama.com</span>
+                        </p>
+                      </div>
+                      <div>
+                        <label for="ai-style" class="field-label">Format API</label>
+                        <select id="ai-style" class="field text-xs">
+                          <option value="openai">OpenAI-compatible (/chat/completions)</option>
+                          <option value="ollama">Ollama (/api/chat)</option>
+                        </select>
+                        <p class="mt-1.5 text-[11px] text-slate-500">Pilih sesuai penyedia model Anda.</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="flex items-center justify-between gap-3">
+                        <label for="ai-model" class="field-label mb-0">Model AI</label>
+                        <span id="ai-model-hint" class="truncate text-[11px] text-slate-500">Contoh: gpt-4o-mini</span>
+                      </div>
+                      <div class="relative mt-2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true">
+                          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                          <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
+                        </svg>
+                        <input
+                          id="ai-model"
+                          class="field pl-10 font-mono text-xs"
+                          placeholder="gpt-4o-mini"
+                          list="ai-model-list"
+                          autocomplete="off"
+                        />
+                        <datalist id="ai-model-list">
+                          <option value="gemma4:31b"></option>
+                          <option value="gpt-4o-mini"></option>
+                          <option value="gpt-4.1-mini"></option>
+                          <option value="llama-3.3-70b-versatile"></option>
+                          <option value="qwen2.5:32b"></option>
+                          <option value="mistral-small3.1:24b"></option>
+                        </datalist>
+                      </div>
+                      <p class="mt-1.5 text-[11px] text-slate-500">
+                        Nama model persis seperti di penyedia, mis. <span class="font-mono text-slate-400">gemma4:31b</span>.
+                      </p>
+                    </div>
+
+                    <div>
+                      <div class="flex items-center justify-between">
+                        <label for="ai-key" class="field-label mb-0">API key</label>
+                        <span id="ai-key-hint" class="text-[11px] text-slate-500">Belum disimpan</span>
+                      </div>
+                      <div class="relative mt-2">
+                        <input id="ai-key" type="password" class="field px-10 font-mono text-xs" placeholder="sk-..." autocomplete="off" />
+                        <button type="button" class="toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-slate-300" data-target="ai-key" aria-label="Tampilkan API key">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+                        </button>
+                      </div>
+                      <p class="mt-1.5 text-[11px] text-slate-500">Kosongkan jika tidak ingin mengganti key yang tersimpan.</p>
+                    </div>
+
+                    <div>
+                      <label for="ai-prompt" class="field-label">System prompt</label>
+                      <textarea id="ai-prompt" rows="4" class="field resize-y" placeholder="Kamu adalah asisten yang ramah..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full sm:w-auto">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M20 6 9 17l-5-5" /></svg>
+                      Simpan pengaturan
+                    </button>
+                  </form>
+                </div>
+
+                <div class="card p-5 sm:p-6">
+                  <h3 class="text-sm font-semibold text-white">Uji balasan AI</h3>
+                  <p class="mt-1 text-xs text-slate-400">Pastikan key dan model bekerja sebelum mengaktifkan auto-reply.</p>
+
+                  <div class="mt-4 space-y-3">
+                    <textarea id="ai-test-message" rows="3" class="field resize-none" placeholder="Halo, produk ini masih tersedia?"></textarea>
+                    <button type="button" id="ai-test" class="btn-ghost w-full">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m12 3 1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3Z" /></svg>
+                      Kirim uji
+                    </button>
+                  </div>
+
+                  <div id="ai-test-result" class="mt-4 hidden rounded-xl border p-4 text-sm leading-relaxed"></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= LOGS ================= -->
+            <section data-page="logs" class="hidden space-y-5">
+              <div class="card p-5 sm:p-6">
+                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 class="text-base font-semibold text-white">Riwayat aktivitas</h2>
+                    <p class="mt-1 text-xs text-slate-400">Pesan masuk, balasan AI, dan pengiriman webhook.</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span id="log-count" class="chip border border-white/10 bg-white/5 text-slate-400">0 entri</span>
+                    <button type="button" id="clear-logs" class="btn-danger">Bersihkan</button>
+                  </div>
+                </div>
+                <div id="log-list" class="space-y-2">
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-sm text-slate-500">Memuat aktivitas…</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= USERS ================= -->
+            <section data-page="users" class="hidden space-y-5">
+              <div class="card p-5 sm:p-6">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-base font-semibold text-white">Profil saya</h2>
+                    <p class="mt-1 text-xs text-slate-400">Perbarui nama, email, dan password akun Anda.</p>
+                  </div>
+                  <span id="profile-role" class="chip border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">User</span>
+                </div>
+
+                <form id="profile-form" class="mt-5 space-y-4" novalidate>
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label for="profile-name" class="field-label">Nama lengkap</label>
+                      <input id="profile-name" type="text" class="field" autocomplete="name" required />
+                    </div>
+                    <div>
+                      <label for="profile-email" class="field-label">Email</label>
+                      <input id="profile-email" type="email" class="field" autocomplete="email" required />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="profile-password" class="field-label">Password baru</label>
+                    <input
+                      id="profile-password"
+                      type="password"
+                      class="field"
+                      autocomplete="new-password"
+                      placeholder="Kosongkan jika tidak diubah"
+                    />
+                    <p class="mt-1.5 text-[11px] text-slate-500">Minimal 6 karakter. Biarkan kosong untuk mempertahankan password saat ini.</p>
+                  </div>
+
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-[11px] text-slate-500">
+                      Terdaftar: <span id="profile-created" class="text-slate-400">—</span>
+                    </p>
+                    <button type="submit" id="profile-save" class="btn-primary">Simpan perubahan</button>
+                  </div>
+                </form>
+              </div>
+
+              <div id="users-admin-card" class="hidden space-y-5">
+                <div class="grid grid-cols-3 gap-3">
+                  <div class="card p-4">
+                    <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Total user</p>
+                    <p id="users-total" class="mt-2 text-xl font-semibold text-white">—</p>
+                  </div>
+                  <div class="card p-4">
+                    <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Admin</p>
+                    <p id="users-admins" class="mt-2 text-xl font-semibold text-emerald-300">—</p>
+                  </div>
+                  <div class="card p-4">
+                    <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">User biasa</p>
+                    <p id="users-regular" class="mt-2 text-xl font-semibold text-cyan-300">—</p>
+                  </div>
+                </div>
+
+                <div class="card p-5 sm:p-6">
+                  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h2 class="text-base font-semibold text-white">Kelola pengguna</h2>
+                      <p class="mt-1 text-xs text-slate-400">Admin dapat menambah, mengubah, dan menghapus akun.</p>
+                    </div>
+                    <button type="button" id="user-add" class="btn-primary">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+                      Tambah user
+                    </button>
+                  </div>
+
+                  <div id="user-list" class="space-y-2">
+                    <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-sm text-slate-500">Memuat pengguna…</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= SETTINGS ================= -->
+            <section data-page="settings" class="hidden space-y-5">
+              <div class="card relative overflow-hidden p-5 sm:p-7">
+                <div class="pointer-events-none absolute -right-16 -top-24 h-56 w-56 rounded-full bg-violet-400/10 blur-3xl"></div>
+                <div class="relative">
+                  <span class="chip border border-violet-400/20 bg-violet-400/10 text-violet-300">Pengaturan</span>
+                  <h2 class="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">Preferensi aplikasi</h2>
+                  <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
+                    Menu ini disiapkan untuk pengaturan lanjutan aplikasi Anda. Konten akan diisi
+                    setelah spesifikasi dari Anda tersedia.
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid gap-4 lg:grid-cols-2">
+                <div class="card p-5 sm:p-6">
+                  <h3 class="text-sm font-semibold text-white">Akun Anda</h3>
+                  <p class="mt-1 text-xs text-slate-400">Ringkasan akun yang sedang digunakan.</p>
+                  <dl class="mt-4 space-y-3 text-sm">
+                    <div class="flex items-center justify-between gap-3 border-b border-white/5 pb-3">
+                      <dt class="text-slate-500">Nama</dt>
+                      <dd id="settings-name" class="truncate font-medium text-slate-200">—</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 border-b border-white/5 pb-3">
+                      <dt class="text-slate-500">Email</dt>
+                      <dd id="settings-email" class="truncate font-medium text-slate-200">—</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 border-b border-white/5 pb-3">
+                      <dt class="text-slate-500">Role</dt>
+                      <dd id="settings-role" class="font-medium text-emerald-300">—</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                      <dt class="text-slate-500">Terdaftar</dt>
+                      <dd id="settings-created" class="text-slate-300">—</dd>
+                    </div>
+                  </dl>
+                  <button type="button" class="btn-ghost mt-5 w-full" data-goto="users">Edit profil saya</button>
+                </div>
+
+                <div class="card flex flex-col justify-center p-5 text-center sm:p-6">
+                  <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white/5 text-slate-400">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6" aria-hidden="true">
+                      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </span>
+                  <h3 class="mt-4 text-sm font-semibold text-white">Menunggu pengaturan</h3>
+                  <p class="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-slate-400">
+                    Beri tahu pengaturan apa yang ingin ditampilkan di sini — misalnya branding,
+                    batas penggunaan, integrasi pembayaran, atau preferensi notifikasi.
+                  </p>
+                  <span class="chip mx-auto mt-4 border border-amber-400/20 bg-amber-400/10 text-amber-300">Segera diisi</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= DOCS ================= -->
+            <section data-page="docs" class="hidden space-y-5">
+              <div class="card relative overflow-hidden p-5 sm:p-7">
+                <div class="pointer-events-none absolute -right-16 -top-24 h-60 w-60 rounded-full bg-cyan-400/10 blur-3xl"></div>
+                <div class="relative">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">Dokumentasi</p>
+                  <h2 class="mt-2 text-xl font-semibold tracking-tight text-white sm:text-2xl">Panduan menjalankan aplikasi</h2>
+                  <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
+                    Langkah lengkap untuk menjalankan Webhook AI di komputer lokal (localhost), di VPS,
+                    maupun di shared hosting cPanel yang mendukung terminal dan Node.js. Semua perintah
+                    bisa disalin dengan tombol <span class="text-slate-300">Salin</span> pada setiap blok kode.
+                  </p>
+
+                  <div class="mt-5 flex flex-wrap gap-2">
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-prasyarat">Prasyarat</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-lokal">Jalankan lokal</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-env">Variabel env</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-whatsapp">WhatsApp</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-ai">AI</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-webhook">Webhook</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-vps">Hosting VPS</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-shared">Shared hosting</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-paas">Cloud lain</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-backup">Backup & update</button>
+                    <button type="button" class="btn-ghost !px-3 !py-2 text-xs" data-scroll="doc-troubleshoot">Troubleshooting</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Prasyarat -->
+              <article id="doc-prasyarat" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-400/10 text-sm font-bold text-emerald-300">1</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Prasyarat</h3>
+                    <p class="mt-1 text-sm text-slate-400">Pastikan semua kebutuhan berikut tersedia sebelum memulai.</p>
+                  </div>
+                </div>
+
+                <div class="mt-5 overflow-x-auto">
+                  <table class="w-full text-left text-sm">
+                    <thead class="text-[11px] uppercase tracking-wider text-slate-500">
+                      <tr class="border-b border-white/5">
+                        <th class="py-2 pr-4 font-semibold">Kebutuhan</th>
+                        <th class="py-2 pr-4 font-semibold">Versi</th>
+                        <th class="py-2 font-semibold">Keterangan</th>
+                      </tr>
+                    </thead>
+                    <tbody class="text-slate-400">
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-medium text-slate-200">Node.js</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-emerald-300">22+</td>
+                        <td class="py-2.5">Wajib untuk top-level await dan modul ESM modern.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-medium text-slate-200">MySQL / MariaDB</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-emerald-300">8+ / 10.6+</td>
+                        <td class="py-2.5">Database utama. Database <span class="font-mono text-slate-300">webhook</span> dibuat otomatis.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-medium text-slate-200">npm</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-emerald-300">10+</td>
+                        <td class="py-2.5">Biasanya sudah ikut terpasang bersama Node.js.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-medium text-slate-200">WhatsApp</td>
+                        <td class="py-2.5 pr-4 text-xs text-slate-500">nomor aktif</td>
+                        <td class="py-2.5">Untuk pairing lewat QR. Disarankan nomor khusus bot.</td>
+                      </tr>
+                      <tr>
+                        <td class="py-2.5 pr-4 font-medium text-slate-200">API key AI</td>
+                        <td class="py-2.5 pr-4 text-xs text-slate-500">opsional</td>
+                        <td class="py-2.5">Ollama Cloud, OpenAI, OpenRouter, Groq, atau Ollama lokal.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="mt-4 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-xs leading-relaxed text-amber-200">
+                  Cek versi Node dengan <span class="font-mono">node -v</span>. Jika masih di bawah v22,
+                  pasang Node.js 22 LTS terlebih dahulu.
+                </div>
+              </article>
+
+              <!-- Jalankan lokal -->
+              <article id="doc-lokal" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cyan-400/10 text-sm font-bold text-cyan-300">2</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Menjalankan di komputer lokal</h3>
+                    <p class="mt-1 text-sm text-slate-400">Cocok untuk mencoba, mengembangkan, atau memakai bot di jaringan sendiri.</p>
+                  </div>
+                </div>
+
+                <ol class="mt-5 space-y-3 text-sm text-slate-400">
+                  <li><span class="font-semibold text-slate-200">1.</span> Pasang <span class="font-mono text-slate-300">Node.js 22+</span> dan pastikan MySQL/MariaDB berjalan (mis. XAMPP, Laragon, atau service MySQL).</li>
+                  <li><span class="font-semibold text-slate-200">2.</span> Buka terminal di folder proyek, lalu pasang dependensi.</li>
+                  <li><span class="font-semibold text-slate-200">3.</span> Jalankan aplikasi, lalu buka <span class="font-mono text-slate-300">http://localhost:3000</span>.</li>
+                </ol>
+
+                <div class="doc-code mt-4">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>cd webhook-ai        # folder hasil clone / ekstrak ZIP
+npm install
+npm start</code></pre>
+                </div>
+
+                <p class="mt-4 text-sm leading-relaxed text-slate-400">
+                  Perintah <span class="font-mono text-slate-300">npm start</span> otomatis membangun ulang
+                  Tailwind CSS lalu menjalankan server. Saat pertama dijalankan, database
+                  <span class="font-mono text-slate-300">webhook</span> beserta seluruh tabelnya dibuat
+                  otomatis, folder <span class="font-mono text-slate-300">auth_files/</span> dibuat, dan
+                  data lama dari <span class="font-mono text-slate-300">data/app.db</span> (SQLite)
+                  dimigrasikan bila tabel <span class="font-mono text-slate-300">users</span> masih kosong.
+                </p>
+
+                <div class="mt-4 rounded-xl border border-sky-400/20 bg-sky-500/10 px-4 py-3 text-xs leading-relaxed text-sky-200">
+                  Kredensial default database: host <span class="font-mono">127.0.0.1</span>, port
+                  <span class="font-mono">3306</span>, user <span class="font-mono">root</span>, password kosong.
+                  Ubah lewat variabel <span class="font-mono">DB_HOST</span>, <span class="font-mono">DB_PORT</span>,
+                  <span class="font-mono">DB_USER</span>, <span class="font-mono">DB_PASSWORD</span>, dan
+                  <span class="font-mono">DB_NAME</span> bila berbeda.
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">Akun demo</p>
+                    <p class="mt-2 text-xs text-slate-400">Email</p>
+                    <p class="font-mono text-xs text-emerald-300">admin@webhook.ai</p>
+                    <p class="mt-2 text-xs text-slate-400">Password</p>
+                    <p class="font-mono text-xs text-emerald-300">admin123</p>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">Mode pengembangan</p>
+                    <p class="mt-2 text-xs leading-relaxed text-slate-400">
+                      Server restart otomatis saat file berubah. Tailwind belum dalam mode watch,
+                      jadi jalankan <span class="font-mono text-slate-300">npm run build:css</span> setelah
+                      mengubah class atau <span class="font-mono text-slate-300">src/input.css</span>.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="doc-code mt-4">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code># Mode pengembangan (auto-restart)
+npm run dev
+
+# Hanya membangun ulang CSS
+npm run build:css</code></pre>
+                </div>
+
+                <div class="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-xs leading-relaxed text-rose-200">
+                  Database MySQL dan folder <span class="font-mono">auth_files/</span> berisi data penting.
+                  Backup database secara rutin dan jangan hapus <span class="font-mono">auth_files/</span>
+                  saat aplikasi sudah dipakai — menghapusnya berarti harus scan QR ulang.
+                </div>
+              </article>
+
+              <!-- Variabel environment -->
+              <article id="doc-env" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-400/10 text-sm font-bold text-violet-300">3</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Variabel environment</h3>
+                    <p class="mt-1 text-sm text-slate-400">Semua opsional — nilai default sudah cocok untuk lokal.</p>
+                  </div>
+                </div>
+
+                <div class="mt-5 overflow-x-auto">
+                  <table class="w-full text-left text-sm">
+                    <thead class="text-[11px] uppercase tracking-wider text-slate-500">
+                      <tr class="border-b border-white/5">
+                        <th class="py-2 pr-4 font-semibold">Variabel</th>
+                        <th class="py-2 pr-4 font-semibold">Default</th>
+                        <th class="py-2 font-semibold">Fungsi</th>
+                      </tr>
+                    </thead>
+                    <tbody class="text-slate-400">
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-200">PORT</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-500">3000</td>
+                        <td class="py-2.5">Port HTTP server.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-200">DB_HOST</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-500">127.0.0.1</td>
+                        <td class="py-2.5">Host MySQL/MariaDB.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-200">DB_PORT</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-500">3306</td>
+                        <td class="py-2.5">Port MySQL.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-200">DB_USER</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-500">root</td>
+                        <td class="py-2.5">User database.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-200">DB_PASSWORD</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-500">(kosong)</td>
+                        <td class="py-2.5">Password database.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-200">DB_NAME</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-500">webhook</td>
+                        <td class="py-2.5">Nama database. Dibuat otomatis bila belum ada.</td>
+                      </tr>
+                      <tr class="border-b border-white/5">
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-200">COOKIE_SECURE</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-500">(kosong)</td>
+                        <td class="py-2.5">Isi <span class="font-mono text-slate-300">1</span> bila diakses lewat HTTPS agar cookie sesi memakai flag Secure.</td>
+                      </tr>
+                      <tr>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-200">WA_LOG_LEVEL</td>
+                        <td class="py-2.5 pr-4 font-mono text-xs text-slate-500">warn</td>
+                        <td class="py-2.5">Level log Baileys: <span class="font-mono text-slate-300">silent</span>, <span class="font-mono text-slate-300">warn</span>, atau <span class="font-mono text-slate-300">info</span>.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <p class="mt-4 text-sm leading-relaxed text-slate-400">
+                  Aplikasi membaca variabel langsung dari environment proses (tidak memakai file
+                  <span class="font-mono text-slate-300">.env</span> otomatis). Set lewat shell, panel hosting,
+                  atau file konfigurasi PM2.
+                </p>
+
+                <div class="doc-code mt-4">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">Windows PowerShell</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>$env:PORT=4000
+$env:DB_HOST="127.0.0.1"
+$env:DB_USER="root"
+$env:DB_PASSWORD=""
+$env:DB_NAME="webhook"
+$env:COOKIE_SECURE="1"
+npm start</code></pre>
+                </div>
+
+                <div class="doc-code mt-3">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">Linux / macOS</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>PORT=4000 DB_HOST=127.0.0.1 DB_USER=root DB_PASSWORD= DB_NAME=webhook COOKIE_SECURE=1 npm start</code></pre>
+                </div>
+              </article>
+
+              <!-- WhatsApp -->
+              <article id="doc-whatsapp" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-400/10 text-sm font-bold text-emerald-300">4</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Menautkan WhatsApp</h3>
+                    <p class="mt-1 text-sm text-slate-400">Pairing memakai QR, sama seperti WhatsApp Web.</p>
+                  </div>
+                </div>
+
+                <ol class="mt-5 space-y-2.5 text-sm leading-relaxed text-slate-400">
+                  <li>1. Login ke dashboard, buka menu <span class="font-semibold text-slate-200">WhatsApp</span>.</li>
+                  <li>2. Klik <span class="font-semibold text-slate-200">Hubungkan WhatsApp</span> dan tunggu QR muncul.</li>
+                  <li>3. Di ponsel: <span class="font-semibold text-slate-200">WhatsApp → Perangkat tertaut → Tautkan perangkat</span>, lalu scan QR.</li>
+                  <li>4. Status berubah menjadi <span class="text-emerald-300">Terhubung</span> dan nomor tampil di sidebar.</li>
+                </ol>
+
+                <div class="mt-4 rounded-xl border border-sky-400/20 bg-sky-500/10 px-4 py-3 text-xs leading-relaxed text-sky-200">
+                  Gunakan satu nomor khusus untuk bot. Hindari logout paksa dari ponsel, karena sesi
+                  Baileys di <span class="font-mono">auth_files/</span> akan tidak valid dan harus scan ulang.
+                  Saat server restart, sesi dipulihkan otomatis dari file tersebut.
+                </div>
+              </article>
+
+              <!-- AI -->
+              <article id="doc-ai" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-sky-400/10 text-sm font-bold text-sky-300">5</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Mengatur balasan AI</h3>
+                    <p class="mt-1 text-sm text-slate-400">Dua format API: Ollama <span class="font-mono">/api/chat</span> dan OpenAI-compatible.</p>
+                  </div>
+                </div>
+
+                <div class="mt-5 grid gap-3 lg:grid-cols-2">
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">Ollama Cloud</p>
+                    <dl class="mt-3 space-y-2 text-xs text-slate-400">
+                      <div class="flex justify-between gap-3"><dt>Base URL</dt><dd class="font-mono text-slate-300">https://ollama.com</dd></div>
+                      <div class="flex justify-between gap-3"><dt>Format API</dt><dd class="text-slate-300">Ollama (/api/chat)</dd></div>
+                      <div class="flex justify-between gap-3"><dt>Model</dt><dd class="font-mono text-slate-300">gemma4:31b</dd></div>
+                      <div class="flex justify-between gap-3"><dt>API key</dt><dd class="text-slate-300">Ollama API key</dd></div>
+                    </dl>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">OpenAI / kompatibel</p>
+                    <dl class="mt-3 space-y-2 text-xs text-slate-400">
+                      <div class="flex justify-between gap-3"><dt>Base URL</dt><dd class="font-mono text-slate-300">https://api.openai.com/v1</dd></div>
+                      <div class="flex justify-between gap-3"><dt>Format API</dt><dd class="text-slate-300">OpenAI-compatible</dd></div>
+                      <div class="flex justify-between gap-3"><dt>Model</dt><dd class="font-mono text-slate-300">gpt-4o-mini</dd></div>
+                      <div class="flex justify-between gap-3"><dt>API key</dt><dd class="text-slate-300">sk-...</dd></div>
+                    </dl>
+                  </div>
+                </div>
+
+                <ol class="mt-4 space-y-2 text-sm leading-relaxed text-slate-400">
+                  <li>1. Buka <span class="font-semibold text-slate-200">AI Balasan</span>, isi Base URL, Format API, Model AI, dan API key.</li>
+                  <li>2. Simpan, lalu klik <span class="font-semibold text-slate-200">Kirim uji</span> untuk memastikan model merespons.</li>
+                  <li>3. Aktifkan toggle AI. Balasan otomatis hanya berlaku untuk chat pribadi, bukan grup.</li>
+                </ol>
+
+                <div class="doc-code mt-4">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">Ollama lokal</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>ollama serve
+ollama pull gemma3:4b
+
+# Di dashboard:
+# Base URL   : http://localhost:11434
+# Format API : Ollama (/api/chat)
+# Model AI   : gemma3:4b
+# API key    : ollama</code></pre>
+                </div>
+              </article>
+
+              <!-- Webhook -->
+              <article id="doc-webhook" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-sm font-bold text-amber-300">6</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Menerima webhook</h3>
+                    <p class="mt-1 text-sm text-slate-400">Setiap pesan masuk dikirim sebagai JSON bertanda tangan HMAC-SHA256.</p>
+                  </div>
+                </div>
+
+                <p class="mt-4 text-sm leading-relaxed text-slate-400">
+                  Tambahkan URL endpoint publik Anda di menu <span class="font-semibold text-slate-200">Webhook</span>.
+                  Header yang dikirim: <span class="font-mono text-slate-300">X-Webhook-Event</span> dan
+                  <span class="font-mono text-slate-300">X-Webhook-Signature: sha256=...</span>.
+                </p>
+
+                <div class="doc-code mt-4">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">payload.json</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>{
+  "event": "message",
+  "from": "6281234567890@s.whatsapp.net",
+  "pushName": "Budi",
+  "isGroup": false,
+  "text": "Halo, produk ini masih ada?",
+  "timestamp": 1762500000000,
+  "webhookId": 1
+}</code></pre>
+                </div>
+
+                <div class="doc-code mt-3">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">Node.js / Express</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>import crypto from 'node:crypto';
+import express from 'express';
+
+const app = express();
+
+app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) =&gt; {
+  const raw = req.body.toString('utf8');
+  const expected =
+    'sha256=' +
+    crypto.createHmac('sha256', process.env.WEBHOOK_SECRET).update(raw).digest('hex');
+
+  if (req.get('X-Webhook-Signature') !== expected) {
+    return res.status(401).send('Signature tidak valid');
+  }
+
+  const payload = JSON.parse(raw);
+  console.log('Pesan masuk:', payload.text);
+  res.sendStatus(200);
+});
+
+app.listen(4000);</code></pre>
+                </div>
+
+                <div class="mt-4 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-xs leading-relaxed text-amber-200">
+                  Gunakan <span class="font-mono">express.raw()</span> agar signature dihitung dari body asli.
+                  Jika body sudah diparse lalu di-<span class="font-mono">JSON.stringify</span>, urutan spasi
+                  dan key bisa berubah sehingga signature tidak cocok.
+                </div>
+              </article>
+
+              <!-- VPS -->
+              <article id="doc-vps" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-400/10 text-sm font-bold text-emerald-300">7</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Hosting di VPS (disarankan)</h3>
+                    <p class="mt-1 text-sm text-slate-400">Contoh Ubuntu 22.04/24.04 + PM2 + Nginx + SSL Let's Encrypt.</p>
+                  </div>
+                </div>
+
+                <p class="mt-4 text-sm leading-relaxed text-slate-400">
+                  Arahkan record DNS tipe <span class="font-mono text-slate-300">A</span> domain Anda ke IP VPS
+                  terlebih dahulu. Ganti <span class="font-mono text-slate-300">domain-anda.com</span> pada
+                  perintah di bawah.
+                </p>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">1 · Pasang Node.js, MySQL, Nginx, dan firewall</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y curl git nginx ufw mysql-server
+
+# Node.js 22 LTS
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v</code></pre>
+                </div>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">2 · Siapkan database MySQL</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>sudo mysql -e "CREATE DATABASE webhook CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo mysql -e "CREATE USER 'webhook'@'localhost' IDENTIFIED BY 'ganti-password';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON webhook.* TO 'webhook'@'localhost'; FLUSH PRIVILEGES;"</code></pre>
+                </div>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">3 · Ambil kode dan uji manual</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>cd /var/www
+sudo git clone https://github.com/USERNAME/REPO.git webhook-ai
+sudo chown -R $USER:$USER webhook-ai
+cd webhook-ai
+
+npm ci
+npm run build:css
+DB_USER=webhook DB_PASSWORD='ganti-password' npm start   # uji, lalu Ctrl+C</code></pre>
+                </div>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">4 · Jalankan permanen dengan PM2</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>sudo npm install -g pm2
+
+COOKIE_SECURE=1 DB_NAME=webhook DB_USER=webhook DB_PASSWORD='ganti-password' \
+  pm2 start src/server.js --name webhook-ai
+pm2 save
+pm2 startup   # ikuti perintah yang muncul agar otomatis jalan saat boot</code></pre>
+                </div>
+
+                <p class="mt-2 text-xs leading-relaxed text-slate-500">
+                  Jangan memakai mode cluster / lebih dari satu instance. Sesi Baileys hanya boleh
+                  dijalankan oleh satu proses.
+                </p>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">5 · Reverse proxy Nginx</p>
+                <p class="mt-2 text-sm text-slate-400">
+                  Buat file <span class="font-mono text-slate-300">/etc/nginx/sites-available/webhook-ai</span>:
+                </p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">nginx</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>server {
+    listen 80;
+    server_name domain-anda.com www.domain-anda.com;
+
+    client_max_body_size 10m;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 300s;
+    }
+}</code></pre>
+                </div>
+
+                <div class="doc-code mt-3">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>sudo ln -s /etc/nginx/sites-available/webhook-ai /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx</code></pre>
+                </div>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">6 · HTTPS gratis dengan Certbot</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d domain-anda.com -d www.domain-anda.com
+
+# Perpanjangan otomatis sudah diaktifkan oleh Certbot.
+# Setelah HTTPS aktif, pastikan aplikasi berjalan dengan COOKIE_SECURE=1.</code></pre>
+                </div>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">7 · Aktifkan firewall</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
+sudo ufw status</code></pre>
+                </div>
+              </article>
+
+              <!-- Shared hosting -->
+              <article id="doc-shared" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-sm font-bold text-amber-300">8</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Shared hosting / cPanel</h3>
+                    <p class="mt-1 text-sm text-slate-400">Hanya bisa dijalankan bila paket hosting menyediakan terminal (SSH) dan Node.js 22.</p>
+                  </div>
+                </div>
+
+                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div class="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-xs leading-relaxed text-emerald-100">
+                    <p class="font-semibold">Syarat wajib</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-4">
+                      <li>Menu <span class="font-mono">Setup Node.js App</span> (CloudLinux Passenger) atau Node.js selector di panel.</li>
+                      <li>Terminal / SSH untuk <span class="font-mono">npm install</span> dan <span class="font-mono">npm run build:css</span>.</li>
+                      <li>Node.js 22 atau lebih baru.</li>
+                      <li>MySQL + user database dari cPanel.</li>
+                    </ul>
+                  </div>
+                  <div class="rounded-xl border border-rose-400/20 bg-rose-500/10 p-4 text-xs leading-relaxed text-rose-100">
+                    <p class="font-semibold">Tidak akan jalan</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-4">
+                      <li>Hosting PHP murni tanpa Node.js.</li>
+                      <li>Tanpa terminal dan tanpa akses <span class="font-mono">npm install</span>.</li>
+                      <li>Proses dimatikan saat idle — bot WhatsApp putus dan QR tidak muncul.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">1 · Upload kode &amp; pasang dependensi</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>cd ~
+git clone https://github.com/USERNAME/REPO.git webhook-ai   # atau upload ZIP lewat File Manager
+cd webhook-ai
+npm install
+npm run build:css</code></pre>
+                </div>
+                <p class="mt-2 text-xs leading-relaxed text-slate-500">
+                  Simpan folder aplikasi di luar <span class="font-mono">public_html</span> (mis.
+                  <span class="font-mono">/home/user/webhook-ai</span>) agar source code dan
+                  <span class="font-mono">auth_files/</span> tidak bisa diunduh publik.
+                </p>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">2 · Buat database di cPanel</p>
+                <p class="mt-2 text-sm leading-relaxed text-slate-400">
+                  Buka <span class="font-semibold text-slate-200">MySQL® Databases</span>, buat database
+                  (mis. <span class="font-mono text-slate-300">user_webhook</span>) dan user-nya, lalu
+                  <span class="font-semibold text-slate-200">Add User to Database → All Privileges</span>.
+                  Catat host (<span class="font-mono text-slate-300">localhost</span>), nama database, user, dan
+                  password. Nama database &amp; user di cPanel otomatis berawalan nama akun hosting.
+                </p>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">3 · Daftarkan aplikasi Node.js</p>
+                <p class="mt-2 text-sm text-slate-400">
+                  cPanel → <span class="font-semibold text-slate-200">Setup Node.js App → Create Application</span>:
+                </p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">konfigurasi</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>Node.js version          : 22
+Application root         : webhook-ai
+Application URL          : https://domain-anda.com
+Application startup file : app.cjs
+
+Environment variables:
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=user_webhook
+DB_PASSWORD=password-database
+DB_NAME=user_webhook
+COOKIE_SECURE=1</code></pre>
+                </div>
+                <div class="mt-3 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-xs leading-relaxed text-amber-200">
+                  Startup file wajib <span class="font-mono">app.cjs</span>: Passenger memuat startup file dengan
+                  <span class="font-mono">require()</span>, sedangkan <span class="font-mono">src/server.js</span>
+                  adalah ESM dengan <em>top-level await</em>. File <span class="font-mono">app.cjs</span> di root
+                  proyek hanya meneruskan ke <span class="font-mono">src/server.js</span>.
+                </div>
+
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">4 · Jalankan &amp; uji</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code># Uji manual dari terminal sebelum lewat panel
+DB_HOST=localhost DB_USER=user_webhook DB_PASSWORD='password-database' \
+  DB_NAME=user_webhook npm start
+
+# Setelah didaftarkan di panel: klik Restart, lalu cek log
+tail -n 50 ~/logs/webhook-ai.log</code></pre>
+                </div>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">5 · Jaga proses tetap hidup</p>
+                <p class="mt-2 text-sm leading-relaxed text-slate-400">
+                  Passenger mematikan proses Node yang idle. Tambahkan cron setiap 5 menit agar aplikasi tetap
+                  bangun sehingga koneksi WhatsApp tidak putus:
+                </p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">crontab -e</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>*/5 * * * * curl -s -o /dev/null https://domain-anda.com/login</code></pre>
+                </div>
+                <p class="mt-2 text-xs leading-relaxed text-slate-500">
+                  Folder <span class="font-mono">auth_files/</span> (sesi WhatsApp) harus tetap berada di application
+                  root agar tidak perlu scan QR ulang setelah restart. Backup berkala lewat File Manager atau cron.
+                </p>
+              </article>
+
+              <!-- PaaS -->
+              <article id="doc-paas" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-fuchsia-400/10 text-sm font-bold text-fuchsia-300">9</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Hosting cloud lain (Railway, Render, Fly.io)</h3>
+                    <p class="mt-1 text-sm text-slate-400">Bisa, asalkan ada persistent disk dan hanya satu instance.</p>
+                  </div>
+                </div>
+
+                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div class="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-xs leading-relaxed text-emerald-100">
+                    <p class="font-semibold">Wajib ada</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-4">
+                      <li>Persistent volume untuk <span class="font-mono">auth_files/</span> (sesi WhatsApp).</li>
+                      <li>Database MySQL terkelola + env <span class="font-mono">DB_*</span>.</li>
+                      <li>Proses long-running (bukan serverless).</li>
+                      <li>Tepat 1 instance / matikan autoscaling.</li>
+                      <li>Env <span class="font-mono">COOKIE_SECURE=1</span>.</li>
+                    </ul>
+                  </div>
+                  <div class="rounded-xl border border-rose-400/20 bg-rose-500/10 p-4 text-xs leading-relaxed text-rose-100">
+                    <p class="font-semibold">Hindari</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-4">
+                      <li>Vercel, Netlify Functions, AWS Lambda.</li>
+                      <li>Platform yang tidur otomatis (scale to zero).</li>
+                      <li>Filesystem ephemeral tanpa volume.</li>
+                      <li>Cluster mode / banyak replika.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <p class="mt-4 text-sm leading-relaxed text-slate-400">
+                  Pengaturan umum di panel hosting:
+                </p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">konfigurasi</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>Build command : npm ci &amp;&amp; npm run build:css
+Start command : node src/server.js
+Port          : ikuti PORT dari platform (otomatis terbaca)
+Volume        : mount ke folder auth_files/
+Environment   : COOKIE_SECURE=1 + DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
+Instance      : 1 (tanpa autoscaling)</code></pre>
+                </div>
+
+                <p class="mt-4 text-sm leading-relaxed text-slate-400">
+                  <span class="font-semibold text-slate-200">Railway:</span> deploy dari GitHub, tambahkan
+                  database MySQL dan Volume pada service, lalu isi mount path ke folder aplikasi. Railway
+                  menyediakan domain HTTPS otomatis. <span class="font-semibold text-slate-200">Render:</span>
+                  pilih Web Service, tambahkan Disk, dan pastikan instance count 1.
+                  <span class="font-semibold text-slate-200">Fly.io:</span> gunakan
+                  <span class="font-mono text-slate-300">fly volumes create</span> dan mount ke
+                  <span class="font-mono text-slate-300">/app/auth_files</span>.
+                </p>
+
+                <div class="mt-4 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-xs leading-relaxed text-amber-200">
+                  Jika volume tidak permanen, sesi WhatsApp hilang setiap deploy — bot harus dipindai
+                  ulang. Database MySQL sebaiknya memakai layanan terkelola dengan backup otomatis.
+                </div>
+              </article>
+
+              <!-- Backup -->
+              <article id="doc-backup" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-400/10 text-sm font-bold text-slate-300">10</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Backup &amp; update</h3>
+                    <p class="mt-1 text-sm text-slate-400">Amankan database dan sesi WhatsApp secara berkala.</p>
+                  </div>
+                </div>
+
+                <div class="doc-code mt-4">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code># Backup database MySQL + sesi WhatsApp
+mysqldump -u root -p webhook &gt; backup-webhook-$(date +%F).sql
+tar -czf backup-auth-$(date +%F).tar.gz auth_files
+
+# Restore database
+mysql -u root -p webhook &lt; backup-webhook-2026-11-07.sql
+pm2 restart webhook-ai</code></pre>
+                </div>
+
+                <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">Update aplikasi</p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">bash</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>cd /var/www/webhook-ai
+git pull
+npm ci
+npm run build:css
+pm2 restart webhook-ai --update-env</code></pre>
+                </div>
+
+                <p class="mt-4 text-sm leading-relaxed text-slate-400">
+                  Backup juga bisa dijadwalkan dengan cron, misalnya setiap hari pukul 02.00:
+                </p>
+                <div class="doc-code mt-2">
+                  <div class="doc-code-head">
+                    <span class="doc-code-lang">crontab -e</span>
+                    <button type="button" class="doc-copy" data-copy-code>Salin</button>
+                  </div>
+                  <pre><code>0 2 * * * mysqldump -u root -p'PASSWORD' webhook | gzip &gt; /root/backup-webhook-$(date +\%F).sql.gz
+0 3 * * * cd /var/www/webhook-ai &amp;&amp; tar -czf /root/backup-auth-$(date +\%F).tar.gz auth_files</code></pre>
+                </div>
+              </article>
+
+              <!-- Troubleshooting -->
+              <article id="doc-troubleshoot" class="card scroll-mt-24 p-5 sm:p-6">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-rose-400/10 text-sm font-bold text-rose-300">11</span>
+                  <div>
+                    <h3 class="text-base font-semibold text-white">Troubleshooting</h3>
+                    <p class="mt-1 text-sm text-slate-400">Masalah yang paling sering muncul beserta solusinya.</p>
+                  </div>
+                </div>
+
+                <div class="mt-5 space-y-3">
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">Gagal terhubung ke MySQL</p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Pastikan service MySQL/MariaDB berjalan dan kredensial <span class="font-mono text-slate-300">DB_HOST</span>, <span class="font-mono text-slate-300">DB_PORT</span>, <span class="font-mono text-slate-300">DB_USER</span>, <span class="font-mono text-slate-300">DB_PASSWORD</span> benar. Error <span class="font-mono text-slate-300">ECONNREFUSED</span> berarti server database belum aktif.</p>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">QR tidak muncul</p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Pastikan server berjalan, lalu klik <span class="text-slate-300">Hubungkan WhatsApp</span>. Tunggu beberapa detik; status akan berubah menjadi <span class="text-slate-300">Scan QR</span>. Jika tetap kosong, restart server.</p>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">WhatsApp terputus terus</p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Jangan login/logout dari perangkat lain secara paksa. Hapus folder <span class="font-mono text-slate-300">auth_files/user-&lt;id&gt;</span> hanya jika ingin pairing ulang, lalu restart.</p>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">AI error 401 / 404</p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">401 berarti API key salah atau kosong. 404 biasanya karena Base URL atau Format API tidak cocok — Ollama memakai <span class="font-mono text-slate-300">/api/chat</span>, OpenAI memakai <span class="font-mono text-slate-300">/chat/completions</span>.</p>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">Webhook tidak terkirim</p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Pastikan webhook berstatus aktif, URL memakai <span class="font-mono text-slate-300">http(s)://</span>, dan endpoint dapat diakses publik. Cek hasilnya di menu <span class="text-slate-300">Aktivitas</span>.</p>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">Perubahan tampilan tidak muncul</p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Jalankan <span class="font-mono text-slate-300">npm run build:css</span> lalu refresh browser dengan <span class="font-mono text-slate-300">Ctrl + F5</span>.</p>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">Port 3000 sudah dipakai</p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Jalankan dengan port lain: <span class="font-mono text-slate-300">PORT=4000 npm start</span> (Linux) atau <span class="font-mono text-slate-300">$env:PORT=4000; npm start</span> (PowerShell).</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- User modal -->
+    <div
+      id="user-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="user-modal-title"
+    >
+      <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-sm" data-modal-close></div>
+
+      <div class="card relative z-10 max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto p-5 sm:p-6">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 id="user-modal-title" class="text-base font-semibold text-white">Tambah user</h2>
+            <p id="user-modal-desc" class="mt-1 text-xs text-slate-400">
+              Buat akun baru untuk pengguna aplikasi.
+            </p>
+          </div>
+          <button
+            type="button"
+            id="user-modal-close"
+            class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-slate-200"
+            aria-label="Tutup"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form id="user-form" class="mt-5 space-y-4" novalidate>
+          <input type="hidden" id="user-form-id" />
+
+          <div>
+            <label for="user-form-name" class="field-label">Nama lengkap</label>
+            <input id="user-form-name" type="text" class="field" autocomplete="off" required />
+          </div>
+
+          <div>
+            <label for="user-form-email" class="field-label">Email</label>
+            <input id="user-form-email" type="email" class="field" autocomplete="off" required />
+          </div>
+
+          <div>
+            <label for="user-form-role" class="field-label">Role</label>
+            <select id="user-form-role" class="field">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+            <p id="user-role-hint" class="mt-1.5 hidden text-[11px] text-amber-300">
+              Role akun sendiri tidak dapat diubah.
+            </p>
+          </div>
+
+          <div>
+            <label for="user-form-password" class="field-label">Password</label>
+            <input id="user-form-password" type="password" class="field" autocomplete="new-password" />
+            <p id="user-password-hint" class="mt-1.5 text-[11px] text-slate-500">Minimal 6 karakter.</p>
+          </div>
+
+          <p id="user-modal-error" class="hidden rounded-lg border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200"></p>
+
+          <div class="flex items-center justify-end gap-2 pt-1">
+            <button type="button" id="user-modal-cancel" class="btn-ghost">Batal</button>
+            <button type="submit" id="user-modal-save" class="btn-primary">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toasts -->
+    <div id="toast-container" class="pointer-events-none fixed bottom-4 right-4 z-[60] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2"></div>
+
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js" defer></script>
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js" defer></script>
+    <script src="/js/dashboard.js" defer></script>
+  </body>
+</html>

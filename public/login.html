@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="id" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#020617" />
+    <meta
+      name="description"
+      content="Webhook AI — hubungkan WhatsApp, teruskan pesan ke webhook, dan balas otomatis dengan AI."
+    />
+    <title>Masuk · Webhook AI</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/vendor/sweetalert2/sweetalert2.min.css" />
+  </head>
+  <body class="min-h-full bg-slate-950 text-slate-100 antialiased">
+    <div class="relative min-h-screen overflow-hidden bg-mesh">
+      <!-- decorative -->
+      <div class="pointer-events-none absolute inset-0 bg-grid opacity-40"></div>
+      <div
+        class="animate-float-slow pointer-events-none absolute -top-24 -left-24 h-80 w-80 rounded-full bg-emerald-500/20 blur-3xl"
+        aria-hidden="true"
+      ></div>
+      <div
+        class="animate-float-slower pointer-events-none absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-cyan-500/15 blur-3xl"
+        aria-hidden="true"
+      ></div>
+
+      <div class="relative z-10 grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
+        <!-- Brand panel -->
+        <aside
+          class="relative hidden flex-col justify-between overflow-hidden border-r border-white/5 p-10 lg:flex xl:p-14"
+        >
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-500/[0.06] via-transparent to-cyan-500/[0.06]"></div>
+
+          <header class="relative flex items-center gap-3">
+            <span
+              class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-400 shadow-lg shadow-emerald-500/25"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="#020617" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6" aria-hidden="true">
+                <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" />
+                <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" />
+                <path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8" />
+              </svg>
+            </span>
+            <div>
+              <p class="text-base font-semibold tracking-tight text-white">Webhook AI</p>
+              <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                WhatsApp Automation
+              </p>
+            </div>
+          </header>
+
+          <div class="relative max-w-xl">
+            <span class="chip mb-6 border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-soft"></span>
+              Gratis selamanya · Tanpa kartu kredit
+            </span>
+
+            <h1 class="text-4xl font-semibold leading-[1.1] tracking-tight text-white xl:text-5xl">
+              Satu webhook untuk<br class="hidden xl:block" />
+              semua pesan
+              <span class="text-gradient">WhatsApp</span> Anda.
+            </h1>
+
+            <p class="mt-5 max-w-md text-sm leading-relaxed text-slate-400 xl:text-base">
+              Daftar gratis dan langsung gunakan dashboard WhatsApp + AI + webhook. Teruskan pesan
+              masuk ke aplikasi apa pun secara real-time, dan biarkan AI membalas pelanggan Anda
+              secara otomatis — 24 jam sehari.
+            </p>
+
+            <ul class="mt-9 space-y-4">
+              <li class="flex items-start gap-4">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-emerald-300">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true">
+                    <path d="m13 2-3 7h6l-3 7" />
+                    <path d="M4 14a8 8 0 0 0 16 0" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="text-sm font-semibold text-slate-100">Webhook real-time</p>
+                  <p class="mt-0.5 text-xs leading-relaxed text-slate-500">
+                    Setiap pesan dikirim instan dengan signature HMAC-SHA256.
+                  </p>
+                </div>
+              </li>
+              <li class="flex items-start gap-4">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-cyan-300">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true">
+                    <path d="M12 8V4H8" />
+                    <rect width="16" height="12" x="4" y="8" rx="2" />
+                    <path d="M2 14h2M20 14h2M15 13v2M9 13v2" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="text-sm font-semibold text-slate-100">Balasan otomatis dengan AI</p>
+                  <p class="mt-0.5 text-xs leading-relaxed text-slate-500">
+                    Gunakan OpenAI, OpenRouter, Groq, atau model lokal kesayangan Anda.
+                  </p>
+                </div>
+              </li>
+              <li class="flex items-start gap-4">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-sky-300">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true">
+                    <rect width="14" height="20" x="5" y="2" rx="2" />
+                    <path d="M12 18h.01" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="text-sm font-semibold text-slate-100">Pairing QR tanpa ribet</p>
+                  <p class="mt-0.5 text-xs leading-relaxed text-slate-500">
+                    Hubungkan nomor WhatsApp dalam hitungan detik lewat Baileys.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <footer class="relative">
+            <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+              Dibangun dengan
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400">Node.js</span>
+              <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400">Baileys</span>
+              <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400">MySQL</span>
+              <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400">Tailwind CSS</span>
+            </div>
+          </footer>
+        </aside>
+
+        <!-- Form panel -->
+        <main class="flex min-h-screen flex-col justify-center px-5 py-10 sm:px-8 lg:px-10">
+          <div class="mx-auto w-full max-w-md">
+            <!-- Mobile brand -->
+            <div class="mb-8 flex items-center justify-center gap-3 lg:hidden">
+              <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-400 shadow-lg shadow-emerald-500/25">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#020617" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6" aria-hidden="true">
+                  <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" />
+                  <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" />
+                  <path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8" />
+                </svg>
+              </span>
+              <div class="text-left">
+                <p class="text-base font-semibold tracking-tight text-white">Webhook AI</p>
+                <p class="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                  WhatsApp Automation
+                </p>
+              </div>
+            </div>
+
+            <div class="animate-fade-up card p-6 sm:p-8">
+              <div class="mb-6">
+                <h2 id="auth-title" class="text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                  Masuk ke akun Anda
+                </h2>
+                <p id="auth-subtitle" class="mt-1.5 text-sm text-slate-400">
+                  Kelola webhook dan balasan AI dari satu dashboard.
+                </p>
+              </div>
+
+              <!-- Tabs -->
+              <div class="mb-6 grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-slate-950/60 p-1">
+                <button
+                  type="button"
+                  id="tab-login"
+                  data-tab="login"
+                  data-active="true"
+                  class="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition hover:text-slate-100 data-[active=true]:bg-white/10 data-[active=true]:text-white data-[active=true]:shadow"
+                >
+                  Masuk
+                </button>
+                <button
+                  type="button"
+                  id="tab-register"
+                  data-tab="register"
+                  data-active="false"
+                  class="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition hover:text-slate-100 data-[active=true]:bg-white/10 data-[active=true]:text-white data-[active=true]:shadow"
+                >
+                  Daftar
+                </button>
+              </div>
+
+              <!-- Alert -->
+              <div
+                id="auth-alert"
+                class="mb-5 hidden items-start gap-2.5 rounded-xl border px-3.5 py-3 text-sm"
+                role="alert"
+                aria-live="polite"
+              >
+                <svg id="auth-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4M12 16h.01" />
+                </svg>
+                <span id="auth-alert-text"></span>
+              </div>
+
+              <!-- Login form -->
+              <form id="login-form" class="space-y-4" novalidate>
+                <div>
+                  <label for="login-email" class="field-label">Email</label>
+                  <div class="relative">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true">
+                      <rect width="20" height="16" x="2" y="4" rx="2" />
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    </svg>
+                    <input
+                      id="login-email"
+                      name="email"
+                      type="email"
+                      autocomplete="email"
+                      required
+                      class="field pl-10"
+                      placeholder="nama@email.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div class="mb-2 flex items-center justify-between">
+                    <label for="login-password" class="field-label mb-0">Password</label>
+                  </div>
+                  <div class="relative">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true">
+                      <rect width="18" height="11" x="3" y="11" rx="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <input
+                      id="login-password"
+                      name="password"
+                      type="password"
+                      autocomplete="current-password"
+                      required
+                      class="field px-10"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-slate-300"
+                      data-target="login-password"
+                      aria-label="Tampilkan password"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-primary w-full" data-submit>
+                  <span data-label>Masuk ke dashboard</span>
+                  <svg data-spinner class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                    <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z" />
+                  </svg>
+                </button>
+              </form>
+
+              <!-- Register form -->
+              <form id="register-form" class="hidden space-y-4" novalidate>
+                <div>
+                  <label for="register-name" class="field-label">Nama lengkap</label>
+                  <div class="relative">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true">
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <input
+                      id="register-name"
+                      name="name"
+                      type="text"
+                      autocomplete="name"
+                      required
+                      class="field pl-10"
+                      placeholder="Nama Anda"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label for="register-email" class="field-label">Email</label>
+                  <div class="relative">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true">
+                      <rect width="20" height="16" x="2" y="4" rx="2" />
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    </svg>
+                    <input
+                      id="register-email"
+                      name="email"
+                      type="email"
+                      autocomplete="email"
+                      required
+                      class="field pl-10"
+                      placeholder="nama@email.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label for="register-password" class="field-label">Password</label>
+                  <div class="relative">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true">
+                      <rect width="18" height="11" x="3" y="11" rx="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <input
+                      id="register-password"
+                      name="password"
+                      type="password"
+                      autocomplete="new-password"
+                      required
+                      minlength="6"
+                      class="field px-10"
+                      placeholder="Minimal 6 karakter"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-slate-300"
+                      data-target="register-password"
+                      aria-label="Tampilkan password"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="register-confirm" class="field-label">Konfirmasi password</label>
+                  <div class="relative">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true">
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                    <input
+                      id="register-confirm"
+                      name="confirm"
+                      type="password"
+                      autocomplete="new-password"
+                      required
+                      class="field pl-10"
+                      placeholder="Ulangi password"
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-primary w-full" data-submit>
+                  <span data-label>Buat akun gratis</span>
+                  <svg data-spinner class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                    <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z" />
+                  </svg>
+                </button>
+              </form>
+
+              <!-- Demo account -->
+              <div id="demo-box" class="mt-6 rounded-xl border border-dashed border-white/10 bg-slate-950/50 p-4">
+                <div class="flex items-start gap-3">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-emerald-400/10 text-emerald-300">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    </svg>
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-xs font-semibold text-slate-200">Masuk sebagai admin demo</p>
+                    <p class="mt-0.5 truncate font-mono text-[11px] text-slate-500">
+                      admin@webhook.ai · admin123
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    id="use-demo"
+                    class="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 transition hover:bg-white/10"
+                  >
+                    Isi
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <p class="mt-6 text-center text-xs text-slate-500">
+              © <span id="year">2026</span> Webhook AI. Gratis untuk semua pengguna · Data tersimpan di MySQL.
+            </p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js" defer></script>
+    <script src="/js/login.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+node_modules/
+data/
+auth_files/
+public/css/app.css
+.env
+npm-debug.log*
+*.log
+.DS_Store
