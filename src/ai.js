@@ -50,18 +50,33 @@ export async function generateReply(settings, userText, { pushName = '' } = {}) 
           messages,
         };
 
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${settings.api_key}`,
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(60_000),
-  });
+  const post = () =>
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${settings.api_key}`,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(60_000),
+    });
+
+  // Model gratis (":free") sering kena throttle sesaat dari penyedia — coba sekali lagi.
+  let res = await post();
+  if (res.status === 429 || res.status === 503) {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    res = await post();
+  }
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
+    if (res.status === 429) {
+      throw new Error(
+        'AI kena rate limit penyedia (429). Model gratis berakhiran ":free" kuotanya kecil dan ' +
+          'dipakai bersama, jadi kadang ditolak walau uji manual berhasil. Ganti ke model berbayar ' +
+          `murah atau model lain di penyedia yang sama. Detail: ${detail.slice(0, 200)}`
+      );
+    }
     throw new Error(`AI error ${res.status}: ${detail.slice(0, 300) || res.statusText}`);
   }
 

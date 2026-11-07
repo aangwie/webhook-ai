@@ -125,6 +125,12 @@ Buka menu **AI Balasan**, isi:
 API key disimpan di database MySQL. Setelah diuji dengan tombol **Kirim uji**, aktifkan
 toggle AI. Auto-reply hanya berlaku untuk **chat pribadi** (bukan grup).
 
+> **Error 429 / rate limit.** Model gratis (mis. `...:free` di OpenRouter) kuotanya kecil dan
+> dipakai bersama banyak pengguna, jadi bisa berhasil saat **Kirim uji** tetapi ditolak saat
+> pesan WhatsApp masuk. Server otomatis mencoba sekali lagi setelah jeda 3 detik; kalau tetap
+> 429, ganti ke model berbayar murah (mis. `gpt-4o-mini`, `gemini-2.5-flash-lite`) atau model
+> lain dari penyedia yang sama.
+
 ### Ollama Cloud
 
 Pilih **Format API → Ollama (/api/chat)**, Base URL `https://ollama.com`, lalu isi
