@@ -26,6 +26,9 @@ import {
   clearLogs,
   seedDemoUser,
   migrateLegacySqlite,
+  runMigrations,
+  getGithubToken,
+  saveGithubToken,
 } from './db.js';
 import {
   verifyPassword,
@@ -36,8 +39,15 @@ import {
   createSecret,
   signPayload,
 } from './auth.js';
-import { getWaState, getWaQr, connectWhatsApp, logoutWhatsApp } from './whatsapp.js';
+import { getWaState, getWaQr, connectWhatsApp, logoutWhatsApp, clearQrCache } from './whatsapp.js';
 import { generateReply } from './ai.js';
+import {
+  appendSystemLog,
+  clearSystemLog,
+  getRepoInfo,
+  readSystemLog,
+  updateFromGithub,
+} from './system.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 const SESSION_DAYS = 7;
@@ -670,6 +680,98 @@ app.delete(
 );
 
 /* ------------------------------------------------------------------ */
+/* Sistem: update GitHub, migrasi, cache, log terminal (khusus admin)  */
+/* ------------------------------------------------------------------ */
+
+app.get(
+  '/api/system',
+  requireAuth,
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const [token, repo] = await Promise.all([getGithubToken(), getRepoInfo()]);
+    res.json({
+      has_token: Boolean(token),
+      token_hint: token ? `••••${token.slice(-4)}` : '',
+      repo,
+    });
+  })
+);
+
+app.put(
+  '/api/system/token',
+  requireAuth,
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const token = String(req.body?.token ?? '').trim();
+
+    if (token && !/^[A-Za-z0-9_]{20,255}$/.test(token)) {
+      return res.status(400).json({ error: 'Format token GitHub tidak valid (20+ karakter, tanpa spasi).' });
+    }
+
+    await saveGithubToken(token);
+    appendSystemLog(token ? 'Token GitHub disimpan.' : 'Token GitHub dihapus.');
+
+    res.json({
+      ok: true,
+      has_token: Boolean(token),
+      token_hint: token ? `••••${token.slice(-4)}` : '',
+    });
+  })
+);
+
+app.post(
+  '/api/system/update',
+  requireAuth,
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const result = await updateFromGithub(await getGithubToken());
+    res.json(result);
+  })
+);
+
+app.post(
+  '/api/system/migrate',
+  requireAuth,
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    await runMigrations();
+    appendSystemLog('Migrasi database selesai — skema diperiksa dan disesuaikan.');
+    res.json({ ok: true });
+  })
+);
+
+app.post(
+  '/api/system/cache',
+  requireAuth,
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const sessions = await purgeExpiredSessions();
+    const qr = clearQrCache();
+    appendSystemLog(`Cache dibersihkan — ${sessions} sesi kedaluwarsa dihapus, ${qr} gambar QR di-reset.`);
+    res.json({ ok: true, sessions, qr });
+  })
+);
+
+app.get(
+  '/api/system/log',
+  requireAuth,
+  requireAdmin,
+  asyncHandler(async (_req, res) => {
+    res.json({ log: readSystemLog() });
+  })
+);
+
+app.delete(
+  '/api/system/log',
+  requireAuth,
+  requireAdmin,
+  asyncHandler(async (_req, res) => {
+    clearSystemLog();
+    res.json({ ok: true });
+  })
+);
+
+/* ------------------------------------------------------------------ */
 /* Pages                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -698,13 +800,6 @@ app.get(
 
 // SweetAlert2 (dialog & toast di mode desktop) dilayani langsung dari node_modules
 // agar tidak perlu menyalin file build ke folder public/.
-app.use(
-  '/vendor/sweetalert2',
-  express.static(path.join(process.cwd(), 'node_modules', 'sweetalert2', 'dist'), {
-    maxAge: '7d',
-  })
-);
-
 app.use(
   '/vendor/sweetalert2',
   express.static(path.join(process.cwd(), 'node_modules', 'sweetalert2', 'dist'), {

@@ -70,8 +70,9 @@ Buka **http://localhost:3000**.
 | ---------------- | -------- | ----- |
 | admin@webhook.ai | admin123 | admin |
 
-Akun demo otomatis dibuat saat pertama kali server dijalankan. Pengguna lain dapat
-mendaftar gratis lewat tab **Daftar** di halaman login dan akan mendapat role `user`.
+Akun demo otomatis dibuat saat pertama kali server dijalankan (tombol isi-otomatis tidak lagi
+ditampilkan di halaman login). Pengguna lain dapat mendaftar gratis lewat tab **Daftar** di
+halaman login dan akan mendapat role `user`.
 
 ## Peran pengguna
 
@@ -98,6 +99,7 @@ Webhhok-AI/
 │  ├─ auth.js        # hashing, cookie, signature
 │  ├─ whatsapp.js    # Baileys: socket, QR, forward webhook, auto-reply
 │  ├─ ai.js          # klien AI (OpenAI-compatible & Ollama /api/chat)
+│  ├─ system.js      # update `git pull` GitHub + log terminal
 │  └─ input.css      # sumber Tailwind v4
 ├─ public/
 │  ├─ login.html     # halaman login/registrasi responsif
@@ -210,6 +212,34 @@ if (req.headers['x-webhook-signature'] !== expected) {
 | POST   | `/api/ai/test`           | Uji balasan AI                 |
 | GET    | `/api/logs`              | Riwayat aktivitas              |
 | DELETE | `/api/logs`              | Bersihkan riwayat              |
+| GET    | `/api/system`            | Info repo + status token (admin) |
+| PUT    | `/api/system/token`      | Simpan/hapus token GitHub (admin) |
+| POST   | `/api/system/update`     | `git pull` + install + build CSS (admin) |
+| POST   | `/api/system/migrate`    | Jalankan migrasi database (admin) |
+| POST   | `/api/system/cache`      | Bersihkan sesi kedaluwarsa + cache QR (admin) |
+| GET    | `/api/system/log`        | Isi terminal log (admin)       |
+| DELETE | `/api/system/log`        | Kosongkan terminal log (admin) |
+
+## Pembaruan aplikasi lewat dashboard
+
+Menu **Pengaturan** (khusus admin) bisa dipakai untuk memperbarui aplikasi tanpa SSH:
+
+1. Buat **fine-grained personal access token** di GitHub → *Settings → Developer settings →
+   Personal access tokens → Fine-grained tokens*, akses hanya ke repo aplikasi ini, izin
+   **Contents: Read**.
+2. Tempel token di form **Token GitHub** → **Simpan token**. Token disimpan di tabel
+   `app_settings` (bukan di `.env`) dan hanya ditampilkan 4 karakter terakhir.
+3. Tekan **Update sekarang** → server menjalankan `git pull --ff-only`, lalu `npm install` dan
+   `npm run build:css` bila ada commit baru. Semua output muncul di **Terminal log**.
+4. **Restart** aplikasi dari panel hosting (Setup Node.js App → Restart) agar kode baru dipakai.
+   Tombol **Hapus log** membersihkan isi terminal.
+
+Tombol **Migrasi database** menjalankan ulang `runMigrations()` (tabel `app_settings` + kolom
+baru) — aman dijalankan berulang. Tombol **Hapus cache** menghapus sesi login kedaluwarsa dan
+gambar QR yang tersimpan di memori.
+
+> Syarat: folder aplikasi harus berupa repo git dengan remote `origin` HTTPS
+> (`git remote -v`). Token tidak pernah ditulis ke `.git/config` maupun ke log.
 
 ## Setup di VPS (disarankan)
 

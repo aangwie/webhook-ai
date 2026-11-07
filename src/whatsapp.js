@@ -86,6 +86,18 @@ export function getWaState(userId) {
   return publicState(state);
 }
 
+/** Buang gambar QR yang tersimpan di memori agar dibuat ulang saat diminta. */
+export function clearQrCache() {
+  let cleared = 0;
+  for (const state of sessions.values()) {
+    if (state.qrDataUrl) {
+      state.qrDataUrl = null;
+      cleared += 1;
+    }
+  }
+  return cleared;
+}
+
 export async function getWaQr(userId) {
   const state = sessions.get(userId);
   if (!state || state.status !== 'qr' || !state.rawQr) {

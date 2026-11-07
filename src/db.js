@@ -122,18 +122,39 @@ await pool.query(`
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 `);
 
-/* Migrasi ringan untuk database yang dibuat sebelum kolom ini ada. */
-const [aiColumns] = await pool.query('SHOW COLUMNS FROM ai_settings');
-if (!aiColumns.some((column) => column.Field === 'api_style')) {
-  await pool.query(
-    "ALTER TABLE ai_settings ADD COLUMN api_style ENUM('openai','ollama') NOT NULL DEFAULT 'openai' AFTER enabled"
-  );
+/* ------------------------------------------------------------------ */
+/* Migrasi                                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Pastikan tabel/kolom tambahan tersedia. Dipanggil saat boot dan bisa
+ * diulang kapan saja dari tombol "Migrasi database" di halaman Pengaturan.
+ */
+export async function runMigrations() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      id           TINYINT UNSIGNED NOT NULL DEFAULT 1,
+      github_token VARCHAR(255) NOT NULL DEFAULT '',
+      updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+
+  /* Migrasi ringan untuk database yang dibuat sebelum kolom ini ada. */
+  const [aiColumns] = await pool.query('SHOW COLUMNS FROM ai_settings');
+  if (!aiColumns.some((column) => column.Field === 'api_style')) {
+    await pool.query(
+      "ALTER TABLE ai_settings ADD COLUMN api_style ENUM('openai','ollama') NOT NULL DEFAULT 'openai' AFTER enabled"
+    );
+  }
+
+  const [userColumns] = await pool.query('SHOW COLUMNS FROM users');
+  if (!userColumns.some((column) => column.Field === 'role')) {
+    await pool.query("ALTER TABLE users ADD COLUMN role ENUM('admin','user') NOT NULL DEFAULT 'user' AFTER password_hash");
+  }
 }
 
-const [userColumns] = await pool.query('SHOW COLUMNS FROM users');
-if (!userColumns.some((column) => column.Field === 'role')) {
-  await pool.query("ALTER TABLE users ADD COLUMN role ENUM('admin','user') NOT NULL DEFAULT 'user' AFTER password_hash");
-}
+await runMigrations();
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -266,7 +287,24 @@ export async function deleteSession(tokenHash) {
 }
 
 export async function purgeExpiredSessions() {
-  await pool.query('DELETE FROM sessions WHERE expires_at <= ?', [Date.now()]);
+  const [result] = await pool.query('DELETE FROM sessions WHERE expires_at <= ?', [Date.now()]);
+  return result.affectedRows ?? 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Pengaturan aplikasi (global)                                        */
+/* ------------------------------------------------------------------ */
+
+export async function getGithubToken() {
+  const result = await row('SELECT github_token FROM app_settings WHERE id = 1');
+  return result?.github_token || '';
+}
+
+export async function saveGithubToken(token) {
+  await pool.query(
+    'INSERT INTO app_settings (id, github_token) VALUES (1, ?) ON DUPLICATE KEY UPDATE github_token = VALUES(github_token)',
+    [String(token ?? '')]
+  );
 }
 
 /* ------------------------------------------------------------------ */

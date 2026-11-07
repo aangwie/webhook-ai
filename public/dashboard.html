@@ -640,8 +640,8 @@
                   <span class="chip border border-violet-400/20 bg-violet-400/10 text-violet-300">Pengaturan</span>
                   <h2 class="mt-3 text-xl font-semibold tracking-tight text-white sm:text-2xl">Preferensi aplikasi</h2>
                   <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-                    Menu ini disiapkan untuk pengaturan lanjutan aplikasi Anda. Konten akan diisi
-                    setelah spesifikasi dari Anda tersedia.
+                    Kelola akun Anda, tarik pembaruan kode langsung dari GitHub, jalankan migrasi
+                    database, dan bersihkan cache tanpa perlu membuka terminal hosting.
                   </p>
                 </div>
               </div>
@@ -671,20 +671,93 @@
                   <button type="button" class="btn-ghost mt-5 w-full" data-goto="users">Edit profil saya</button>
                 </div>
 
-                <div class="card flex flex-col justify-center p-5 text-center sm:p-6">
-                  <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white/5 text-slate-400">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6" aria-hidden="true">
-                      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </span>
-                  <h3 class="mt-4 text-sm font-semibold text-white">Menunggu pengaturan</h3>
-                  <p class="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-slate-400">
-                    Beri tahu pengaturan apa yang ingin ditampilkan di sini — misalnya branding,
-                    batas penggunaan, integrasi pembayaran, atau preferensi notifikasi.
-                  </p>
-                  <span class="chip mx-auto mt-4 border border-amber-400/20 bg-amber-400/10 text-amber-300">Segera diisi</span>
+                <div id="settings-system" class="hidden space-y-4">
+                  <div class="card p-5 sm:p-6">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 class="text-sm font-semibold text-white">Pembaruan dari GitHub</h3>
+                        <p class="mt-1 text-xs text-slate-400">
+                          Simpan token agar aplikasi bisa menarik commit terbaru dari repositori.
+                        </p>
+                      </div>
+                      <span class="chip border border-slate-700/60 bg-slate-800/60 text-slate-400">Admin</span>
+                    </div>
+
+                    <form id="gh-form" class="mt-4 space-y-3" novalidate>
+                      <div>
+                        <div class="flex items-center justify-between gap-3">
+                          <label for="gh-token" class="field-label mb-0">Token GitHub</label>
+                          <span id="gh-token-hint" class="text-[11px] text-slate-500">Belum disimpan</span>
+                        </div>
+                        <div class="relative mt-2">
+                          <input
+                            id="gh-token"
+                            type="password"
+                            class="field px-10 font-mono text-xs"
+                            placeholder="ghp_..."
+                            autocomplete="off"
+                            spellcheck="false"
+                          />
+                          <button
+                            type="button"
+                            class="toggle-password absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-slate-300"
+                            data-target="gh-token"
+                            aria-label="Tampilkan token"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+                          </button>
+                        </div>
+                        <p class="mt-1.5 text-[11px] text-slate-500">
+                          Fine-grained token dengan izin <span class="font-mono text-slate-400">Contents: Read</span>
+                          pada repo ini. Kosongkan lalu simpan untuk menghapus token.
+                        </p>
+                      </div>
+
+                      <div class="flex flex-wrap gap-2">
+                        <button type="submit" class="btn-primary">Simpan token</button>
+                        <button type="button" id="gh-update" class="btn-ghost">Update sekarang</button>
+                      </div>
+
+                      <p id="gh-repo" class="truncate font-mono text-[11px] text-slate-500">—</p>
+                    </form>
+                  </div>
+
+                  <div class="card p-5 sm:p-6">
+                    <h3 class="text-sm font-semibold text-white">Pemeliharaan</h3>
+                    <p class="mt-1 text-xs text-slate-400">
+                      Jalankan saat skema database berubah setelah pembaruan, atau saat tampilan
+                      terasa tidak sinkron.
+                    </p>
+                    <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                      <button type="button" id="sys-migrate" class="btn-ghost">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2" /><path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7Z" /><path d="M9 12h6" /></svg>
+                        Migrasi database
+                      </button>
+                      <button type="button" id="sys-cache" class="btn-ghost">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>
+                        Hapus cache
+                      </button>
+                    </div>
+                    <p class="mt-3 text-[11px] leading-relaxed text-slate-500">
+                      Hapus cache membersihkan sesi login kedaluwarsa di database dan gambar QR yang
+                      tersimpan di memori server.
+                    </p>
+                  </div>
                 </div>
+              </div>
+
+              <div id="settings-terminal" class="card hidden p-5 sm:p-6">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-semibold text-white">Terminal log</h3>
+                    <p class="mt-1 text-xs text-slate-400">Hasil pembaruan, migrasi, dan pembersihan cache.</p>
+                  </div>
+                  <div class="flex gap-2">
+                    <button type="button" id="term-refresh" class="btn-ghost px-3 py-2 text-xs">Muat ulang</button>
+                    <button type="button" id="term-clear" class="btn-ghost px-3 py-2 text-xs text-rose-300">Hapus log</button>
+                  </div>
+                </div>
+                <pre id="sys-term" class="mt-4 max-h-80 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/80 p-4 font-mono text-[11px] leading-relaxed text-emerald-200/90">Belum ada log.</pre>
               </div>
             </section>
 

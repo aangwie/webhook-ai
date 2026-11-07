@@ -7,7 +7,6 @@ const alertBox = $('#auth-alert');
 const alertText = $('#auth-alert-text');
 const title = $('#auth-title');
 const subtitle = $('#auth-subtitle');
-const demoTab = $('#demo-box');
 
 const ALERT_BASE = 'mb-5 flex items-start gap-2.5 rounded-xl border px-3.5 py-3 text-sm';
 const ALERT_STYLES = {
@@ -25,7 +24,6 @@ function setMode(next) {
 
   loginForm.classList.toggle('hidden', !isLogin);
   registerForm.classList.toggle('hidden', isLogin);
-  demoTab.classList.toggle('hidden', !isLogin);
 
   $('#tab-login').dataset.active = String(isLogin);
   $('#tab-register').dataset.active = String(!isLogin);
@@ -87,14 +85,6 @@ $$('.toggle-password').forEach((button) => {
     button.setAttribute('aria-label', show ? 'Sembunyikan password' : 'Tampilkan password');
     button.classList.toggle('text-emerald-300', show);
   });
-});
-
-$('#use-demo').addEventListener('click', () => {
-  setMode('login');
-  $('#login-email').value = 'admin@webhook.ai';
-  $('#login-password').value = 'admin123';
-  showAlert('success', 'Kredensial demo terisi. Tekan "Masuk ke dashboard".');
-  $('#login-password').focus();
 });
 
 loginForm.addEventListener('submit', async (event) => {

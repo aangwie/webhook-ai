@@ -14,6 +14,8 @@ const state = {
   ai: null,
   users: [],
   userStats: null,
+  system: null,
+  termTimer: null,
   page: 'overview',
   polling: false,
   qrLoading: false,
@@ -26,7 +28,7 @@ const PAGES = {
   ai: { title: 'AI Balasan', subtitle: 'Konfigurasikan model dan balasan otomatis.' },
   logs: { title: 'Aktivitas', subtitle: 'Riwayat pesan, webhook, dan balasan AI.' },
   users: { title: 'User', subtitle: 'Kelola profil Anda dan akun pengguna aplikasi.' },
-  settings: { title: 'Pengaturan', subtitle: 'Preferensi aplikasi dan ringkasan akun.' },
+  settings: { title: 'Pengaturan', subtitle: 'Preferensi aplikasi, pembaruan, dan pemeliharaan.' },
   docs: { title: 'Dokumentasi', subtitle: 'Cara menjalankan aplikasi di lokal dan hosting.' },
 };
 
@@ -291,7 +293,15 @@ function switchPage(page, { updateHash = true } = {}) {
   if (page === 'webhooks') loadWebhooks().catch((err) => toast(err.message, 'error'));
   if (page === 'ai') loadAi().catch((err) => toast(err.message, 'error'));
   if (page === 'users') loadUsers().catch((err) => toast(err.message, 'error'));
-  if (page === 'settings') renderSettings();
+  if (page === 'settings') {
+    renderSettings();
+    if (isAdmin()) {
+      loadSystem().catch((err) => toast(err.message, 'error'));
+      startTermPoll();
+    }
+  } else {
+    stopTermPoll();
+  }
   if (page === 'whatsapp') refreshWa().catch(() => {});
   if (page === 'overview') refreshOverview().catch(() => {});
 }
@@ -691,6 +701,52 @@ function renderSettings() {
   $('#settings-created').textContent = formatDate(user.created_at);
 }
 
+/* ------------------------------------------------------------------ */
+/* Pengaturan sistem (admin): update GitHub, migrasi, cache, terminal  */
+/* ------------------------------------------------------------------ */
+
+async function loadSystem() {
+  state.system = await api('/api/system');
+  renderSystem();
+  await loadTerminal();
+}
+
+function renderSystem() {
+  const system = state.system;
+  if (!system) return;
+
+  $('#gh-token-hint').textContent = system.has_token
+    ? `Tersimpan ${system.token_hint}`
+    : 'Belum disimpan';
+
+  const repo = system.repo ?? {};
+  $('#gh-repo').textContent = repo.git
+    ? `${repo.remote} · ${repo.branch}`
+    : 'Repositori git belum siap di server ini.';
+}
+
+async function loadTerminal() {
+  if (!isAdmin()) return;
+
+  const data = await api('/api/system/log');
+  const term = $('#sys-term');
+  const text = (data.log || '').trim();
+
+  term.textContent = text || 'Belum ada log.';
+  term.scrollTop = term.scrollHeight;
+}
+
+function startTermPoll() {
+  if (!isAdmin() || state.termTimer) return;
+  state.termTimer = setInterval(() => loadTerminal().catch(() => {}), 2500);
+}
+
+function stopTermPoll() {
+  if (!state.termTimer) return;
+  clearInterval(state.termTimer);
+  state.termTimer = null;
+}
+
 function applyUserIdentity() {
   const user = state.user;
   if (!user) return;
@@ -714,6 +770,8 @@ function applyUserIdentity() {
 
   $('#nav-user-badge')?.classList.toggle('hidden', !admin);
   $('#users-admin-card')?.classList.toggle('hidden', !admin);
+  $('#settings-system')?.classList.toggle('hidden', !admin);
+  $('#settings-terminal')?.classList.toggle('hidden', !admin);
 
   const profileRole = $('#profile-role');
   if (profileRole) {
@@ -1258,6 +1316,101 @@ function bindEvents() {
       await loadLogs();
       await refreshOverview();
       toast('Riwayat dibersihkan.', 'success');
+    } catch (error) {
+      toast(error.message, 'error');
+    }
+  });
+
+  /* Pengaturan sistem (admin) */
+  $('#gh-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = $('#gh-form [type="submit"]');
+    const token = $('#gh-token').value.trim();
+
+    button.disabled = true;
+    try {
+      const data = await api('/api/system/token', {
+        method: 'PUT',
+        body: JSON.stringify({ token }),
+      });
+      state.system = { ...(state.system ?? {}), has_token: data.has_token, token_hint: data.token_hint };
+      $('#gh-token').value = '';
+      renderSystem();
+      await loadTerminal();
+      toast(token ? 'Token GitHub disimpan.' : 'Token GitHub dihapus.', 'success');
+    } catch (error) {
+      toast(error.message, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $('#gh-update').addEventListener('click', async () => {
+    const confirmed = await confirmDialog(
+      'Tarik commit terbaru dari GitHub? Restart aplikasi dari panel hosting setelah selesai.',
+      { title: 'Update aplikasi', confirmText: 'Update sekarang' }
+    );
+    if (!confirmed) return;
+
+    const button = $('#gh-update');
+    button.disabled = true;
+    button.textContent = 'Memperbarui…';
+    startTermPoll();
+
+    try {
+      const result = await api('/api/system/update', { method: 'POST' });
+      toast(
+        result.changed ? 'Pembaruan diterapkan. Restart aplikasi.' : 'Kode sudah versi terbaru.',
+        'success'
+      );
+    } catch (error) {
+      toast(error.message, 'error');
+    } finally {
+      await loadTerminal().catch(() => {});
+      button.disabled = false;
+      button.textContent = 'Update sekarang';
+    }
+  });
+
+  $('#sys-migrate').addEventListener('click', async () => {
+    const button = $('#sys-migrate');
+    button.disabled = true;
+    try {
+      await api('/api/system/migrate', { method: 'POST' });
+      await loadTerminal();
+      toast('Migrasi database selesai.', 'success');
+    } catch (error) {
+      toast(error.message, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $('#sys-cache').addEventListener('click', async () => {
+    const button = $('#sys-cache');
+    button.disabled = true;
+    try {
+      const data = await api('/api/system/cache', { method: 'POST' });
+      await loadTerminal();
+      toast(`Cache dibersihkan: ${data.sessions} sesi, ${data.qr} QR.`, 'success');
+    } catch (error) {
+      toast(error.message, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $('#term-refresh').addEventListener('click', () => {
+    loadTerminal().catch((error) => toast(error.message, 'error'));
+  });
+
+  $('#term-clear').addEventListener('click', async () => {
+    if (!(await confirmDialog('Hapus semua isi log terminal?', { title: 'Hapus log', confirmText: 'Hapus' })))
+      return;
+    try {
+      await api('/api/system/log', { method: 'DELETE' });
+      await loadTerminal();
+      toast('Log terminal dihapus.', 'success');
     } catch (error) {
       toast(error.message, 'error');
     }
