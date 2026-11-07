@@ -722,7 +722,7 @@ function renderSystem() {
   const repo = system.repo ?? {};
   $('#gh-repo').textContent = repo.git
     ? `${repo.remote} · ${repo.branch}`
-    : 'Repositori git belum siap di server ini.';
+    : `Belum terhubung — klik Update sekarang untuk menyiapkan otomatis dari ${repo.remote}`;
 }
 
 async function loadTerminal() {
@@ -1346,8 +1346,11 @@ function bindEvents() {
   });
 
   $('#gh-update').addEventListener('click', async () => {
+    const fresh = !state.system?.repo?.git;
     const confirmed = await confirmDialog(
-      'Tarik commit terbaru dari GitHub? Restart aplikasi dari panel hosting setelah selesai.',
+      fresh
+        ? 'Folder aplikasi belum berupa repo git. Klik lanjut untuk menyiapkan repo dan mengunduh seluruh kode dari GitHub (file dengan nama sama akan ditimpa). Restart aplikasi setelah selesai.'
+        : 'Tarik commit terbaru dari GitHub? Restart aplikasi dari panel hosting setelah selesai.',
       { title: 'Update aplikasi', confirmText: 'Update sekarang' }
     );
     if (!confirmed) return;
@@ -1366,7 +1369,7 @@ function bindEvents() {
     } catch (error) {
       toast(error.message, 'error');
     } finally {
-      await loadTerminal().catch(() => {});
+      await loadSystem().catch(() => {});
       button.disabled = false;
       button.textContent = 'Update sekarang';
     }

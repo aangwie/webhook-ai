@@ -240,6 +240,16 @@ Menu **Pengaturan** (khusus admin) bisa dipakai untuk memperbarui aplikasi tanpa
 4. **Restart** aplikasi dari panel hosting (Setup Node.js App → Restart) agar kode baru dipakai.
    Tombol **Hapus log** membersihkan isi terminal.
 
+> **Folder hasil unzip (tanpa `.git`).** Bila aplikasi dipasang dengan mengunggah zip, klik
+> pertama **Update sekarang** akan menyiapkan repo sendiri: `git init` + remote `origin` ke
+> `https://github.com/aangwie/webhook-ai.git`, `git fetch`, lalu `git reset --hard FETCH_HEAD`
+> dan `git checkout -B main`. Artinya seluruh kode diunduh dari GitHub dan file dengan nama sama
+> **ditimpa**; `node_modules/`, `data/`, `auth_files/`, `.env`, dan `public/css/app.css` tidak
+> disentuh karena masuk `.gitignore`. Setelah itu tombol tersebut hanya melakukan `git pull`.
+>
+> Pakai fork? Set env `GIT_REMOTE=https://github.com/<user>/<repo>.git` (dan `GIT_BRANCH` bila
+> branch-nya bukan `main`). Perintah `git` harus tersedia di server.
+
 Tombol **Migrasi database** menjalankan ulang `runMigrations()` (tabel `app_settings` + kolom
 baru) — aman dijalankan berulang. Tombol **Hapus cache** menghapus sesi login kedaluwarsa dan
 gambar QR yang tersimpan di memori.
