@@ -290,6 +290,13 @@ hosting PHP murni tidak cukup, karena bot WhatsApp butuh proses Node yang hidup 
 Folder `auth_files/` (sesi WhatsApp) harus tetap di dalam application root agar tidak
 perlu scan QR ulang setiap restart.
 
+> **Satu proses saja.** Jangan biarkan Passenger/PM2 menjalankan lebih dari satu worker
+> (`PassengerMaxPoolSize 1`, PM2 tanpa `-i`), dan jangan `npm start` di terminal saat panel
+> sudah menjalankan aplikasi. Dua proses memakai `auth_files/` yang sama akan saling tendang
+> (kode 440) sehingga status berganti-ganti *menyambung ↔ tersambung* tanpa henti. Aplikasi
+> menolak menyambung bila sesi dipegang proses lain (file `auth_files/user-<id>/.owner`) dan
+> berhenti mencoba setelah 12 percobaan reconnect.
+
 ## Platform cloud (Railway, Render, Fly.io)
 
 - Sediakan **MySQL terkelola** (mis. Railway MySQL, PlanetScale, Aiven) dan set `DB_*`.

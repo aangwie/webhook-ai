@@ -1335,7 +1335,9 @@ tail -n 50 ~/logs/webhook-ai.log</code></pre>
                 <p class="mt-5 text-xs font-semibold uppercase tracking-wider text-slate-500">5 · Jaga proses tetap hidup</p>
                 <p class="mt-2 text-sm leading-relaxed text-slate-400">
                   Passenger mematikan proses Node yang idle. Tambahkan cron setiap 5 menit agar aplikasi tetap
-                  bangun sehingga koneksi WhatsApp tidak putus:
+                  bangun sehingga koneksi WhatsApp tidak putus. Pastikan juga aplikasi hanya berjalan
+                  <span class="font-semibold text-slate-300">satu proses</span> — jangan buka terminal kedua dengan
+                  <span class="font-mono text-slate-300">npm start</span> saat panel sudah menjalankannya.
                 </p>
                 <div class="doc-code mt-2">
                   <div class="doc-code-head">
@@ -1482,6 +1484,10 @@ pm2 restart webhook-ai --update-env</code></pre>
                   <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
                     <p class="text-sm font-semibold text-slate-200">QR tidak muncul</p>
                     <p class="mt-1 text-xs leading-relaxed text-slate-400">Pastikan server berjalan, lalu klik <span class="text-slate-300">Hubungkan WhatsApp</span>. Tunggu beberapa detik; status akan berubah menjadi <span class="text-slate-300">Scan QR</span>. Jika tetap kosong, restart server.</p>
+                  </div>
+                  <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-sm font-semibold text-slate-200">Status WhatsApp berganti-ganti (menyambung ↔ tersambung)</p>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-400">Penyebab tersering: aplikasi berjalan <span class="font-semibold text-slate-300">lebih dari satu proses/worker</span> — Passenger pool lebih dari 1, PM2 cluster, atau <span class="font-mono text-slate-300">npm start</span> dua kali. Dua koneksi memakai sesi yang sama lalu saling tendang (kode 440). Cek dengan <span class="font-mono text-slate-300">ps -u $(whoami) -o pid,cmd | grep app.cjs</span> dan sisakan satu proses. Aplikasi menolak menyambung bila sesi sudah dipegang proses lain, dan berhenti mencoba setelah 12 percobaan (jeda maksimal 60 detik) — kode error-nya terlihat di menu <span class="text-slate-300">Aktivitas</span>.</p>
                   </div>
                   <div class="rounded-xl border border-white/5 bg-white/[0.02] p-4">
                     <p class="text-sm font-semibold text-slate-200">WhatsApp terputus terus</p>
