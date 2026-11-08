@@ -1,9 +1,0 @@
-# Perlindungan tambahan bila docroot domain salah diarahkan ke folder proyek
-# (seharusnya ke folder `public/`): folder sensitif di bawah ini tidak boleh
-# bisa diunduh langsung lewat HTTP.
-<IfModule mod_alias.c>
-  RedirectMatch 404 ^/(data|auth_files|src|node_modules)(/|$)
-</IfModule>
-<IfModule mod_autoindex.c>
-  Options -Indexes
-</IfModule>

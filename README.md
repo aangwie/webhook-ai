@@ -332,6 +332,14 @@ hosting PHP murni tidak cukup, karena bot WhatsApp butuh proses Node yang hidup 
    > dengan `require()`, sedangkan `src/server.js` adalah ESM dengan *top-level await*.
    > File `app.cjs` di root proyek hanya meneruskan ke `src/server.js`.
 
+   > **Jangan menaruh `.htaccess` di folder aplikasi.** cPanel mengelola blok
+   > `# CLOUDLINUX PASSENGER CONFIGURATION` sendiri (biasanya di `public_html/.htaccess`
+   > atau di folder application root). File itu menentukan Passenger menjalankan
+   > `app.cjs`; kalau tertimpa, Apache berhenti meneruskan request ke Node dan domain
+   > membalas **403 Forbidden**. Bila itu terjadi: buka *Setup Node.js App*, klik
+   > *Save*/*Restart* pada aplikasi Anda agar blok Passenger ditulis ulang. Karena itu
+   > `.htaccess` sudah masuk `.gitignore` dan tidak ikut di-commit.
+
 4. **Restart** aplikasi dari panel, lalu cek log: `tail -n 50 ~/logs/webhook-ai.log`.
 
 5. **Jaga proses tetap hidup** — Passenger mematikan proses yang idle, sehingga koneksi

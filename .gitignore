@@ -6,3 +6,6 @@ public/css/app.css
 npm-debug.log*
 *.log
 .DS_Store
+# .htaccess di root proyek milik CloudLinux Passenger (dibuat panel cPanel).
+# Jangan pernah di-commit: updater menjalankan git pull dan akan menimpanya.
+/.htaccess
