@@ -11,6 +11,7 @@ import pino from 'pino';
 import { addLog, activeWebhooks, getAiSettings } from './db.js';
 import { generateReply } from './ai.js';
 import { signPayload } from './auth.js';
+import { assertPublicUrl } from './net.js';
 
 const logger = pino({ level: process.env.WA_LOG_LEVEL || 'warn' });
 
@@ -416,7 +417,7 @@ export async function forwardToWebhooks(userId, payload) {
         webhookId: hook.id,
       });
 
-      const res = await fetch(hook.url, {
+      const res = await fetch(await assertPublicUrl(hook.url), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -425,6 +426,7 @@ export async function forwardToWebhooks(userId, payload) {
           'X-Webhook-Signature': `sha256=${signPayload(hook.secret, body)}`,
         },
         body,
+        redirect: 'manual',
         signal: AbortSignal.timeout(10_000),
       });
 

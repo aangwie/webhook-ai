@@ -164,6 +164,33 @@ async function confirmDialog(message, { title = 'Konfirmasi', confirmText = 'Ya,
   return isConfirmed;
 }
 
+/**
+ * Konfirmasi + password dalam satu dialog. Dipakai untuk aksi berbahaya
+ * (update kode dari GitHub) supaya sesi yang dicuri saja tidak cukup.
+ * Mengembalikan password, atau null bila dibatalkan.
+ */
+async function passwordDialog(message, { title = 'Konfirmasi', confirmText = 'Lanjutkan' } = {}) {
+  if (!useSwal()) {
+    if (!window.confirm(message)) return null;
+    return window.prompt('Masukkan password akun Anda untuk melanjutkan:') || null;
+  }
+
+  const { isConfirmed, value } = await window.Swal.fire({
+    ...SWAL_THEME,
+    title,
+    text: message,
+    input: 'password',
+    inputAttributes: { autocomplete: 'current-password', placeholder: 'Password akun Anda' },
+    inputValidator: (val) => (val ? undefined : 'Password wajib diisi.'),
+    showCancelButton: true,
+    confirmButtonText: confirmText,
+    cancelButtonText: 'Batal',
+    reverseButtons: true,
+  });
+
+  return isConfirmed ? value : null;
+}
+
 function toast(message, type = 'info') {
   if (useSwal()) {
     swalToast.fire({ icon: type, title: message });
@@ -1347,13 +1374,13 @@ function bindEvents() {
 
   $('#gh-update').addEventListener('click', async () => {
     const fresh = !state.system?.repo?.git;
-    const confirmed = await confirmDialog(
+    const password = await passwordDialog(
       fresh
         ? 'Folder aplikasi belum berupa repo git. Klik lanjut untuk menyiapkan repo dan mengunduh seluruh kode dari GitHub (file dengan nama sama akan ditimpa). Restart aplikasi setelah selesai.'
         : 'Tarik commit terbaru dari GitHub? Restart aplikasi dari panel hosting setelah selesai.',
       { title: 'Update aplikasi', confirmText: 'Update sekarang' }
     );
-    if (!confirmed) return;
+    if (!password) return;
 
     const button = $('#gh-update');
     button.disabled = true;
@@ -1361,7 +1388,10 @@ function bindEvents() {
     startTermPoll();
 
     try {
-      const result = await api('/api/system/update', { method: 'POST' });
+      const result = await api('/api/system/update', {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      });
       toast(
         result.changed ? 'Pembaruan diterapkan. Restart aplikasi.' : 'Kode sudah versi terbaru.',
         'success'

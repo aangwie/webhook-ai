@@ -64,15 +64,23 @@ Buka **http://localhost:3000**.
 > `npm start` otomatis membangun ulang `public/css/app.css` dengan Tailwind CLI sebelum
 > menjalankan server. Untuk pengembangan: `npm run dev` (watch mode Node).
 
-### Akun demo
+### Akun admin
 
-| Email            | Password | Role  |
-| ---------------- | -------- | ----- |
-| admin@webhook.ai | admin123 | admin |
+Tidak ada akun default. **User pertama** yang mendaftar otomatis menjadi admin, jadi cukup
+buka `/register`. Alternatifnya, jalankan server sekali dengan akun demo:
 
-Akun demo otomatis dibuat saat pertama kali server dijalankan (tombol isi-otomatis tidak lagi
-ditampilkan di halaman login). Pengguna lain dapat mendaftar gratis lewat tab **Daftar** di
-halaman login dan akan mendapat role `user`.
+```bash
+SEED_DEMO=1 DEMO_PASSWORD='password-ku' npm start
+```
+
+| Email            | Password        | Role  |
+| ---------------- | --------------- | ----- |
+| admin@webhook.ai | `DEMO_PASSWORD` | admin |
+
+Akun demo **hanya** dibuat bila `SEED_DEMO=1` dan belum ada user dengan email tersebut; akun
+yang sudah ada tidak pernah diubah role-nya. Hapus variabel itu setelah login pertama dan ganti
+password. Pengguna berikutnya mendaftar lewat tab **Daftar** dan mendapat role `user` (tutup
+pendaftaran dengan `ALLOW_REGISTER=0`).
 
 ## Peran pengguna
 
@@ -349,20 +357,32 @@ perlu scan QR ulang setiap restart.
 - Gunakan **persistent volume** untuk folder `auth_files/` (sesi Baileys).
 - Jalankan proses long-running, bukan serverless (hindari Vercel/Netlify Functions).
 - Set instance count **1** dan nonaktifkan autoscaling.
-- Set environment `COOKIE_SECURE=1`.
+- Set environment `COOKIE_SECURE=1` (otomatis aktif bila `NODE_ENV=production`).
+- Set `TRUST_PROXY=1` agar rate limit memakai IP klien asli di balik proxy platform.
 
 ## Variabel environment
 
-| Variabel        | Default     | Fungsi                                             |
-| --------------- | ----------- | -------------------------------------------------- |
-| `PORT`          | `3000`      | Port HTTP server.                                  |
-| `DB_HOST`       | `127.0.0.1` | Host MySQL/MariaDB.                                |
-| `DB_PORT`       | `3306`      | Port MySQL.                                        |
-| `DB_USER`       | `root`      | User database.                                     |
-| `DB_PASSWORD`   | _(kosong)_  | Password database.                                 |
-| `DB_NAME`       | `webhook`   | Nama database (dibuat otomatis bila belum ada).    |
-| `COOKIE_SECURE` | kosong      | Isi `1` saat diakses via HTTPS (cookie `Secure`).  |
-| `WA_LOG_LEVEL`  | `warn`      | Level log Baileys (`silent`, `warn`, `info`).      |
+| Variabel                | Default     | Fungsi                                                        |
+| ----------------------- | ----------- | ------------------------------------------------------------- |
+| `PORT`                  | `3000`      | Port HTTP server.                                             |
+| `DB_HOST`               | `127.0.0.1` | Host MySQL/MariaDB.                                           |
+| `DB_PORT`               | `3306`      | Port MySQL.                                                   |
+| `DB_USER`               | `root`      | User database.                                                |
+| `DB_PASSWORD`           | _(kosong)_  | Password database.                                            |
+| `DB_NAME`               | `webhook`   | Nama database (dibuat otomatis bila belum ada).               |
+| `NODE_ENV`              | kosong      | `production` → cookie `Secure`, HSTS, pesan error generik.     |
+| `COOKIE_SECURE`         | kosong      | Isi `1` saat diakses via HTTPS (cookie `Secure`).             |
+| `TRUST_PROXY`           | kosong      | `1`/jumlah hop bila di belakang Nginx/Cloudflare/Railway.     |
+| `ALLOW_REGISTER`        | aktif       | `0` menutup pendaftaran publik.                               |
+| `ALLOW_PRIVATE_TARGETS` | kosong      | `1` mengizinkan webhook ke IP LAN (default ditolak, anti-SSRF).|
+| `SEED_DEMO`             | kosong      | `1` membuat akun `admin@webhook.ai` saat boot.                |
+| `DEMO_PASSWORD`         | `admin123`  | Password akun demo (hanya dipakai bila `SEED_DEMO=1`).        |
+| `GIT_REMOTE`            | repo bawaan | Remote git untuk fitur update.                                |
+| `GIT_BRANCH`            | `main`      | Branch yang ditarik fitur update.                             |
+| `WA_LOG_LEVEL`          | `warn`      | Level log Baileys (`silent`, `warn`, `info`).                 |
+
+> `TRUST_PROXY` sengaja kosong secara default: tanpa reverse proxy, header
+> `X-Forwarded-For` bisa dikirim klien sendiri sehingga rate limit login tidak ada artinya.
 
 ## Catatan
 

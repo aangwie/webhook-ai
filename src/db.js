@@ -286,6 +286,19 @@ export async function deleteSession(tokenHash) {
   await pool.query('DELETE FROM sessions WHERE id = ?', [tokenHash]);
 }
 
+/**
+ * Cabut semua sesi milik satu user setelah password diganti. `keepTokenHash`
+ * (sesi yang sedang dipakai) dipertahankan agar admin tidak ikut ter-logout
+ * saat mengganti password akunnya sendiri.
+ */
+export async function deleteUserSessions(userId, keepTokenHash = '') {
+  const [result] = await pool.query('DELETE FROM sessions WHERE user_id = ? AND id <> ?', [
+    userId,
+    keepTokenHash,
+  ]);
+  return result.affectedRows ?? 0;
+}
+
 export async function purgeExpiredSessions() {
   const [result] = await pool.query('DELETE FROM sessions WHERE expires_at <= ?', [Date.now()]);
   return result.affectedRows ?? 0;
@@ -326,7 +339,8 @@ export async function getWebhook(userId, id) {
 }
 
 export async function createWebhook(userId, { name, url, events, secret }) {
-  const info = await row(
+  // INSERT harus memakai result header (insertId), bukan row() yang untuk SELECT.
+  const [info] = await pool.query(
     'INSERT INTO webhooks (user_id, name, url, secret, events) VALUES (?, ?, ?, ?, ?)',
     [userId, name, url, secret, events || 'message']
   );
@@ -437,17 +451,19 @@ export async function clearLogs(userId) {
 export async function seedDemoUser() {
   const email = 'admin@webhook.ai';
   const existing = await findUserByEmail(email);
-  if (existing) {
-    if (existing.role !== 'admin') {
-      await pool.query("UPDATE users SET role = 'admin' WHERE id = ?", [existing.id]);
-    }
-    return existing;
-  }
+
+  // Akun yang sudah ada tidak pernah diubah role-nya: kalau admin sengaja
+  // menurunkan akun ini jadi "user", jangan dinaikkan lagi diam-diam.
+  if (existing) return existing;
+
+  // Akun demo hanya dibuat bila diminta eksplisit — kalau tidak, server yang
+  // baru dipasang akan punya admin berpassword default yang bisa dipakai siapa pun.
+  if (!/^(1|true|yes|on)$/i.test(process.env.SEED_DEMO || '')) return null;
 
   const user = await createUser({
     name: 'Admin Demo',
     email,
-    password: 'admin123',
+    password: process.env.DEMO_PASSWORD || 'admin123',
     role: 'admin',
   });
 

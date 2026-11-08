@@ -12,6 +12,7 @@ import {
   createSession,
   findSessionUser,
   deleteSession,
+  deleteUserSessions,
   purgeExpiredSessions,
   listWebhooks,
   getWebhook,
@@ -48,16 +49,23 @@ import {
   readSystemLog,
   updateFromGithub,
 } from './system.js';
+import { assertAiBaseUrl, assertPublicUrl, isValidHttpUrl } from './net.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 const SESSION_DAYS = 7;
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 /**
  * Set COOKIE_SECURE=1 saat aplikasi diakses lewat HTTPS (mis. di balik Nginx,
  * Railway, Render, Fly.io). Cookie sesi akan memakai flag `Secure`.
+ * Di produksi flag ini otomatis aktif.
  */
-const COOKIE_SECURE = /^(1|true|yes|on)$/i.test(process.env.COOKIE_SECURE || '');
+const COOKIE_SECURE =
+  /^(1|true|yes|on)$/i.test(process.env.COOKIE_SECURE || '') || IS_PROD;
+
+/** Registrasi publik bisa ditutup dengan ALLOW_REGISTER=0 (mis. panel internal). */
+const ALLOW_REGISTER = !/^(0|false|no|off)$/i.test(process.env.ALLOW_REGISTER || '');
 
 const migration = await migrateLegacySqlite();
 if (!migration.skipped) {
@@ -71,9 +79,35 @@ await purgeExpiredSessions();
 const app = express();
 app.disable('x-powered-by');
 
-// Percayai reverse proxy (Nginx, Cloudflare, Railway, Render) agar IP klien
-// dan protokol HTTPS terbaca dengan benar.
-app.set('trust proxy', 1);
+/**
+ * Hanya percayai X-Forwarded-For bila memang ada reverse proxy di depan
+ * (Nginx, Cloudflare, Railway, Render). Tanpa proxy, header itu dikirim klien
+ * sendiri sehingga `req.ip` bisa dipalsukan dan rate limit jadi tidak berarti.
+ * Set TRUST_PROXY=1 (jumlah hop) atau "loopback" bila di belakang proxy lokal.
+ */
+const TRUST_PROXY = process.env.TRUST_PROXY || '';
+if (TRUST_PROXY) {
+  app.set('trust proxy', /^\d+$/.test(TRUST_PROXY) ? Number(TRUST_PROXY) : TRUST_PROXY);
+}
+
+/* Header keamanan: cegah clickjacking, MIME sniffing, dan bocornya referrer. */
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // style-src butuh 'unsafe-inline' karena SweetAlert2 mengatur style elemen saat runtime.
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data:; font-src 'self' data:; connect-src 'self'; " +
+      "object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+  );
+  if (COOKIE_SECURE) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
 
 app.use(express.json({ limit: '1mb' }));
 
@@ -119,17 +153,32 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-/* Login rate limiting (per IP, in-memory) */
-const loginAttempts = new Map();
-function tooManyAttempts(ip) {
+/* Rate limiting in-memory (per IP + per aksi) */
+const attempts = new Map();
+const ATTEMPT_WINDOW = 5 * 60 * 1000;
+
+/**
+ * Kunci limiter memakai `req.ip`, yang hanya berisi X-Forwarded-For bila
+ * TRUST_PROXY diset — kalau tidak, `req.ip` = alamat socket yang asli.
+ */
+function clientKey(req) {
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+function tooManyAttempts(key, max) {
   const now = Date.now();
-  const entry = loginAttempts.get(ip);
+
+  // ponytail: Map di memori, cukup untuk satu proses. Pindah ke Redis bila
+  // aplikasi dijalankan multi-worker atau entry-nya mulai besar.
+  if (attempts.size > 10_000) attempts.clear();
+
+  const entry = attempts.get(key);
   if (!entry || entry.reset < now) {
-    loginAttempts.set(ip, { count: 1, reset: now + 5 * 60 * 1000 });
+    attempts.set(key, { count: 1, reset: now + ATTEMPT_WINDOW });
     return false;
   }
   entry.count += 1;
-  return entry.count > 25;
+  return entry.count > max;
 }
 
 /* ------------------------------------------------------------------ */
@@ -139,6 +188,13 @@ function tooManyAttempts(ip) {
 app.post(
   '/api/auth/register',
   asyncHandler(async (req, res) => {
+    if (!ALLOW_REGISTER) {
+      return res.status(403).json({ error: 'Pendaftaran akun baru ditutup di server ini.' });
+    }
+    if (tooManyAttempts(`register:${clientKey(req)}`, 10)) {
+      return res.status(429).json({ error: 'Terlalu banyak pendaftaran. Coba lagi dalam 5 menit.' });
+    }
+
     const { name = '', email = '', password = '' } = req.body ?? {};
 
     if (String(name).trim().length < 2) {
@@ -154,7 +210,11 @@ app.post(
       return res.status(409).json({ error: 'Email sudah terdaftar. Silakan login.' });
     }
 
-    const user = await createUser({ name, email, password, role: 'user' });
+    // Instalasi baru tidak punya admin (akun demo sekarang opt-in), jadi user
+    // pertama otomatis admin. ponytail: dua pendaftaran serentak di DB kosong
+    // bisa sama-sama admin — risiko kecil, tidak sepadan transaksi khusus.
+    const role = (await countUsers()).total === 0 ? 'admin' : 'user';
+    const user = await createUser({ name, email, password, role });
     await startSession(res, user.id);
     await addLog(user.id, {
       type: 'system',
@@ -171,8 +231,8 @@ app.post(
 app.post(
   '/api/auth/login',
   asyncHandler(async (req, res) => {
-    const ip = req.ip || 'unknown';
-    if (tooManyAttempts(ip)) {
+    const key = `login:${clientKey(req)}`;
+    if (tooManyAttempts(key, 25)) {
       return res.status(429).json({ error: 'Terlalu banyak percobaan. Coba lagi dalam 5 menit.' });
     }
 
@@ -184,7 +244,7 @@ app.post(
     }
 
     await startSession(res, user.id);
-    loginAttempts.delete(ip);
+    attempts.delete(key);
     res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   })
 );
@@ -343,6 +403,20 @@ app.patch(
     try {
       const user = await updateUser(id, { name, email, password, role });
 
+      if (password) {
+        // Password berubah = sesi lama dicabut, supaya cookie yang sudah dicuri
+        // tidak tetap berlaku sampai 7 hari.
+        const current = hashToken(parseCookies(req.headers.cookie).sid ?? '');
+        const revoked = await deleteUserSessions(id, current);
+        if (revoked) {
+          await addLog(req.user.id, {
+            type: 'system',
+            direction: 'out',
+            message: `Password "${user.email}" diganti — ${revoked} sesi lain dicabut.`,
+          });
+        }
+      }
+
       if (id !== req.user.id) {
         await addLog(req.user.id, {
           type: 'system',
@@ -478,6 +552,12 @@ app.post(
     if (!isValidHttpUrl(url)) {
       return res.status(400).json({ error: 'URL webhook harus http/https yang valid.' });
     }
+    try {
+      // Server ini yang akan memanggil URL tersebut — tolak alamat internal.
+      await assertPublicUrl(url);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
 
     const hook = await createWebhook(req.user.id, {
       name: String(name).trim(),
@@ -503,6 +583,13 @@ app.patch(
     const { name, url, active } = req.body ?? {};
     if (url !== undefined && !isValidHttpUrl(url)) {
       return res.status(400).json({ error: 'URL webhook harus http/https yang valid.' });
+    }
+    if (url !== undefined) {
+      try {
+        await assertPublicUrl(url);
+      } catch (error) {
+        return res.status(400).json({ error: error.message });
+      }
     }
 
     const hook = await updateWebhook(req.user.id, id, { name, url, active });
@@ -540,7 +627,9 @@ app.post(
 
     const started = Date.now();
     try {
-      const response = await fetch(hook.url, {
+      // Validasi ulang saat eksekusi: URL bisa saja berubah jadi internal (DNS).
+      const target = await assertPublicUrl(hook.url);
+      const response = await fetch(target, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -549,6 +638,7 @@ app.post(
           'X-Webhook-Signature': `sha256=${signPayload(hook.secret, body)}`,
         },
         body,
+        redirect: 'manual',
         signal: AbortSignal.timeout(10_000),
       });
 
@@ -614,6 +704,14 @@ app.put(
 
     if (base_url && !isValidHttpUrl(base_url)) {
       return res.status(400).json({ error: 'Base URL harus http/https yang valid.' });
+    }
+    if (base_url) {
+      try {
+        // Ollama lokal (127.0.0.1) tetap boleh; metadata cloud tidak.
+        await assertAiBaseUrl(base_url);
+      } catch (error) {
+        return res.status(400).json({ error: error.message });
+      }
     }
     if (!['openai', 'ollama'].includes(api_style)) {
       return res.status(400).json({ error: 'Format API harus "openai" atau "ollama".' });
@@ -724,6 +822,18 @@ app.post(
   requireAuth,
   requireAdmin,
   asyncHandler(async (req, res) => {
+    // Aksi ini menjalankan git + npm install di server (setara eksekusi kode),
+    // jadi sesi yang dicuri saja tidak cukup: minta password lagi.
+    const password = String(req.body?.password ?? '');
+    const self = await findUserById(req.user.id);
+
+    if (!password || !verifyPassword(password, self?.password_hash)) {
+      appendSystemLog(`Update ditolak: konfirmasi password gagal (${req.user.email}).`);
+      return res.status(403).json({
+        error: 'Password salah. Konfirmasi password diperlukan untuk menjalankan update.',
+      });
+    }
+
     const result = await updateFromGithub(await getGithubToken());
     res.json(result);
   })
@@ -824,21 +934,16 @@ app.use((req, res) => {
 app.use((err, req, res, _next) => {
   console.error('[error]', err);
   if (res.headersSent) return;
-  res.status(500).json({ error: err.message || 'Terjadi kesalahan pada server.' });
+  // Detail internal (nama tabel, path, perintah git) hanya untuk pengembangan.
+  const detail = err.message || 'Terjadi kesalahan pada server.';
+  res.status(500).json({ error: IS_PROD ? 'Terjadi kesalahan pada server.' : detail });
 });
 
 /* ------------------------------------------------------------------ */
 /* Utils                                                               */
 /* ------------------------------------------------------------------ */
 
-function isValidHttpUrl(value) {
-  try {
-    const url = new URL(String(value));
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
+/* isValidHttpUrl() sekarang tinggal di src/net.js (dipakai bersama validasi SSRF). */
 
 /* ------------------------------------------------------------------ */
 /* Boot                                                                */
@@ -850,7 +955,11 @@ app.listen(PORT, () => {
   console.log('  │   Webhook AI · WhatsApp + AI + Webhook        │');
   console.log('  ╰──────────────────────────────────────────────╯');
   console.log(`  URL    : http://localhost:${PORT}`);
-  console.log('  Demo   : admin@webhook.ai / admin123');
+  if (/^(1|true|yes|on)$/i.test(process.env.SEED_DEMO || '')) {
+    console.log(`  Demo   : admin@webhook.ai / ${process.env.DEMO_PASSWORD || 'admin123'}`);
+  } else {
+    console.log('  Akun   : belum ada admin? jalankan dengan SEED_DEMO=1 sekali saja.');
+  }
   console.log('');
 
   resumeWhatsAppSessions();

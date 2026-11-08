@@ -187,7 +187,9 @@ export async function updateFromGithub(token) {
       appendSystemLog(`Commit baru: ${before ? before.slice(0, 7) : '(baru)'} → ${after.slice(0, 7)}`);
 
       appendSystemLog('$ npm install');
-      const install = await npm(['install', '--no-audit', '--no-fund']);
+      // --ignore-scripts: dependensi tidak boleh menjalankan kode saat install,
+      // jadi repo yang disusupi tidak otomatis jadi eksekusi kode di server.
+      const install = await npm(['install', '--ignore-scripts', '--no-audit', '--no-fund']);
       appendSystemLog(install.stdout.trim() || '(tanpa output)');
 
       appendSystemLog('$ npm run build:css');

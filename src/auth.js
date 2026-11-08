@@ -35,7 +35,13 @@ export function parseCookies(header = '') {
     if (idx === -1) continue;
     const key = part.slice(0, idx).trim();
     if (!key) continue;
-    out[key] = decodeURIComponent(part.slice(idx + 1).trim());
+    const raw = part.slice(idx + 1).trim();
+    try {
+      out[key] = decodeURIComponent(raw);
+    } catch {
+      // Cookie rusak (mis. `sid=%`) tidak boleh menjatuhkan request.
+      out[key] = raw;
+    }
   }
   return out;
 }

@@ -10,6 +10,8 @@
  *     -H "Content-Type: application/json" \
  *     -d '{"model":"gemma4:31b","messages":[...],"stream":false}'
  */
+import { assertAiBaseUrl } from './net.js';
+
 export async function generateReply(settings, userText, { pushName = '' } = {}) {
   if (!settings?.api_key) {
     throw new Error('API key AI belum diatur. Buka menu AI dan simpan API key terlebih dahulu.');
@@ -50,22 +52,34 @@ export async function generateReply(settings, userText, { pushName = '' } = {}) 
           messages,
         };
 
-  const post = () =>
-    fetch(endpoint, {
+  const post = async () => {
+    // Base URL diisi user: pastikan tidak menunjuk jaringan internal (anti-SSRF).
+    const target = await assertAiBaseUrl(endpoint);
+    return fetch(target, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${settings.api_key}`,
       },
       body: JSON.stringify(body),
+      // Jangan ikuti redirect: 302 bisa dipakai untuk lompat ke alamat internal.
+      redirect: 'manual',
       signal: AbortSignal.timeout(60_000),
     });
+  };
 
   // Model gratis (":free") sering kena throttle sesaat dari penyedia — coba sekali lagi.
   let res = await post();
   if (res.status === 429 || res.status === 503) {
     await new Promise((resolve) => setTimeout(resolve, 3000));
     res = await post();
+  }
+
+  if (res.status >= 300 && res.status < 400) {
+    throw new Error(
+      `Endpoint AI mengembalikan redirect (HTTP ${res.status}). Isi Base URL dengan alamat final ` +
+        '(tanpa redirect), mis. https://api.openai.com/v1.'
+    );
   }
 
   if (!res.ok) {
